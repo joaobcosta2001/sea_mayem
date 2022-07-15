@@ -1,0 +1,76 @@
+---- User Interface Library ----
+v1.0
+by João Costa
+
+Requires InputLib.pde
+
+To work:
+ add initializeUILib() to setup()
+ add processUILib() to draw()
+ add processUILibKeyPressed to keyPressed()
+ add processUILibMousePressed to mousePressed()
+ add processUILibMouseReleased to mouseReleased()
+
+CLASSES
+
+---Class UIElement---
+Properties:
+ - PVector position - location on screen in absolute coordinates
+ - PVector dimensions - dimensions of element in pixels
+ - String label - text identifier of element
+ - boolean visible - expresses visibility of UIElement
+
+---Class UIButton---
+
+extends UIElement
+
+Constructor:
+  Button(float x, float y, float w, float h, String t)
+  x,y - top left coordinates of button
+  w,h - dimensions in pixels of button
+  t - text to be displayed inside the button
+
+Properties:
+ - color textColor - color of text when button not selected
+ - color backgroundColor - color of background of button when not selected
+ - color strokeColor - color of button border when not selected
+ - color selectedTextColor - color of text when button is selected
+ - color selectedBackgroundColor - color of background of button when selected
+ - color selectedStrokeColor - color of button border when selected
+ - float margin - margin between button text and border on all sides
+ - float fontSize - size of text inside button. Adjusted on button create
+ - String text - text inside button
+ - boolean clicked - is true in the frame in which the button is clicked
+ - boolean released - is true in the frame in which the button is released
+ - PFont font - font of the button's text
+
+Methods:
+ - render() - renders the button
+
+---Class UITextBox---
+
+extends UIElement
+
+Note: dummy text is the text to be displayed when no input has been given yet
+
+Constructor:
+  TextBox(float x, float y, float w, float h, String t)
+  x,y - top left coordinates of button
+  w,h - dimensions in pixels of button
+  t - text to be displayed as dummy text
+
+Properties:
+ - color textColor - color of text when button not selected
+ - color dummyTextColor - color of dummy text when textbox not selected
+ - color backgroundColor - color of background of textbox when not selected
+ - color strokeColor - color of textbox border when not selected
+ - color selectedDummyTextColor - color of dummy text when textbox is selected
+ - color selectedBackgroundColor - color of background of textbox when selected
+ - color selectedStrokeColor - color of textbox border when selected
+ - float margin - margin between textbox text and border on all sides
+ - float fontSize - size of text inside textbox. Adjusted on button create
+ - String text - holds the texted inputed to the text box
+ - boolean clicked - is true in the frame in which the textbox is clicked
+
+Methods:
+ - render() - renders the textbox

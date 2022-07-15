@@ -1,0 +1,20 @@
+Implement multithreadding for multiple connections
+	-multithreading
+	-test with mutliple clients
+	-broadcasting
+Implement boat building menu:
+	-broadcast "boat_building_menu"
+	-all clients go to boat building screen
+	-allow customization of boat
+		-picking parts
+			-View of the boat and its components
+			-View of available Engineering Points (EP)
+				-Waste on engine, guns
+			-Catalog of parts to pick from
+		-selecting specialization
+		-viewing team loadouts
+		-transfer EP to teammates
+		-waste EP on espionage
+			-View how much available EP for espionage
+		-never allow for less than x EP
+	-ready button (and ready counter)
