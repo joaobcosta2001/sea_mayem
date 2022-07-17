@@ -11,6 +11,21 @@ To work:
  add processUILibMousePressed to mousePressed()
  add processUILibMouseReleased to mouseReleased()
 
+GLOBAL VARS
+
+selectedUIElement - currently selected UIElement
+font_default - reattribute afte initializeUILib() to reset default font
+
+LISTS
+
+UIElementList
+UIButtonList
+UITextBoxList
+UIScrollListList
+UIScrollBarList
+UIMessageList
+UIProgressBarList
+
 CLASSES
 
 ---Class UIElement---
@@ -29,6 +44,7 @@ Constructor:
   x,y - top left coordinates of button
   w,h - dimensions in pixels of button
   t - text to be displayed inside the button
+  added to UIElementList and UIButtonList
 
 Properties:
  - color textColor - color of text when button not selected
@@ -46,6 +62,9 @@ Properties:
 
 Methods:
  - render() - renders the button
+ - setFont(Pfont f) - sets font of the button as f
+
+
 
 ---Class UITextBox---
 
@@ -55,9 +74,10 @@ Note: dummy text is the text to be displayed when no input has been given yet
 
 Constructor:
   TextBox(float x, float y, float w, float h, String t)
-  x,y - top left coordinates of button
-  w,h - dimensions in pixels of button
+  x,y - top left coordinates of UITextBox
+  w,h - dimensions in pixels of UITextBox
   t - text to be displayed as dummy text
+  added to UIElementList and UITextBoxList
 
 Properties:
  - color textColor - color of text when button not selected
@@ -70,7 +90,41 @@ Properties:
  - float margin - margin between textbox text and border on all sides
  - float fontSize - size of text inside textbox. Adjusted on button create
  - String text - holds the texted inputed to the text box
+ - String dummy text - text to be displayed as dummy text
  - boolean clicked - is true in the frame in which the textbox is clicked
+
+Methods:
+ - render() - renders the textbox
+
+
+
+
+## Class UIScrollList
+
+extends UIElement
+
+Constructor:
+  ScrollList(float x, float y, float w, float h)
+  x,y - top left coordinates of UIScrollList
+  w,h - dimensions in pixels of UIScrollList
+  t - text to be displayed as dummy text
+  added to UIElementList and UIScrollListList
+
+Properties:
+  - PVector position (inherited) - position od top left corner of UIScrollList
+  - PVector dimensions (inherited) - dimensions in pixles of the UIScrollList
+  - boolean visible - wether the UIScrollList is visible or not
+  - String label - string identifier of the UIScrollList
+  - color textColor - color of text when button not selected
+  - color backgroundColor - color of background of textbox when not selected
+  - color strokeColor - color of textbox border when not selected
+  - color selectedBackgroundColor - color of background of textbox when selected
+  - color selectedStrokeColor - color of textbox border when selected
+  - float margin - margin between textbox text and border on all sides
+  - float fontSize - size of text inside textbox. Adjusted on button create
+  - String text - holds the texted inputed to the text box
+  - String dummy text - text to be displayed as dummy text
+  - boolean clicked - is true in the frame in which the textbox is clicked
 
 Methods:
  - render() - renders the textbox

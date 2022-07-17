@@ -93,6 +93,7 @@ void handleConnectivity(){
 }
 
 void updateTeamsAndReadyStates(String m){
+  println("Received players: |" + m + "|");
   scrolllist_team_select_team_1.removeAll();
   scrolllist_team_select_team_2.removeAll();
   team_1_ready.clear();

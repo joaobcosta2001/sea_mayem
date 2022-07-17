@@ -32,16 +32,10 @@ class Player:
             self.team = 1
 
 
-p1 = Player("127.0.0.1",6400)
-p1.name = "Vasco da Gama"
-p2 = Player("127.0.0.1",6401)
-p2.name = "Cristovao Colombo"
-p3 = Player("127.0.0.1",6402)
-p3.name = "Fernao Magalhaes"
-p4 = Player("127.0.0.1",6403)
-p4.name = "Pedro Alvares Cabral"
-p5 = Player("127.0.0.1",6404)
-p5.name = "Gil Eanes"
+for i in range(26):
+    p = Player("127.0.0.1",6400+i)
+    p.name = "Bot_" + str(p.port)
+    p.teamReady = True
 
 for i in range(5):
     playerList[i].teamReady = True

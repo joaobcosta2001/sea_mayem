@@ -146,6 +146,7 @@ class UIScrollList extends UIElement{
   int elementsToDraw, selectedElement;
   ArrayList<String> elements;
   UIScrollBar scrollbar;
+  float _lastFontSize;
     
   UIScrollList(float x, float y, float w, float h){
     UIElementList.add(this);
@@ -165,19 +166,24 @@ class UIScrollList extends UIElement{
     this.scrollBarWidth = this.margin;
     this.scrollbar = new UIScrollBar(this.position.x +  this.dimensions.x - this.margin - this.scrollBarWidth, this.position.y + this.margin, this.scrollBarWidth, this.dimensions.y - 2 * this.margin, 1);
     this.scrollbar.visible = false;
+    this._lastFontSize = this.fontSize;
   }
 
   void recalculateScrollButtonSize(){
+    println("Recalculating scrollbar button size: " + str(this.elementsToDraw) + "/" + str(this.elements.size()));
     this.scrollbar.buttonToHeightRatio = this.elementsToDraw / float(this.elements.size());
   }
 
   void add(String t){
     elements.add(t);
+    //println("Adding element " + t + " to " + this.label + " (fontsize = " + str(this.fontSize) + ")");
     if(this.elements.size() * this.fontSize*2-this.fontSize < this.dimensions.y - 2 * this.margin){
       this.elementsToDraw = this.elements.size();
+      //println("Set elementsToDraw to elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
       this.scrollbar.visible = false;
     }else{
       this.elementsToDraw = ceil((this.dimensions.y - 2 * this.margin)/(this.fontSize * 2));
+      //println("Set elementsToDraw to less than elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
       this.scrollbar.visible = true;
     }
     this.recalculateScrollButtonSize();
@@ -189,9 +195,11 @@ class UIScrollList extends UIElement{
         this.elements.remove(i);
         if(this.elements.size() * this.fontSize*2-this.fontSize < this.dimensions.y - 2 * this.margin){
           this.elementsToDraw = this.elements.size();
+          //println("Set elementsToDraw to elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
           this.scrollbar.visible = false;
         }else{
           this.elementsToDraw = ceil((this.dimensions.y - 2 * this.margin)/(this.fontSize * 2));
+          //println("Set elementsToDraw to less than elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
           this.scrollbar.visible = true;
         }
         this.recalculateScrollButtonSize();
@@ -207,16 +215,34 @@ class UIScrollList extends UIElement{
     this.recalculateScrollButtonSize();
   }
 
+  void checkFontSize(){
+    if (this.fontSize != this._lastFontSize){
+      //println("Recalculating text size");
+      if(this.elements.size() * this.fontSize*2-this.fontSize < this.dimensions.y - 2 * this.margin){
+        this.elementsToDraw = this.elements.size();
+        //println("Set elementsToDraw to elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
+        this.scrollbar.visible = false;
+      }else{
+        this.elementsToDraw = ceil((this.dimensions.y - 2 * this.margin)/(this.fontSize * 2));
+        //println("Set elementsToDraw to less than elements size (" + str(this.elementsToDraw) + "=" + str(this.elements.size()) + ")");
+        this.scrollbar.visible = true;
+      }
+      this._lastFontSize = this.fontSize;
+      this.recalculateScrollButtonSize();
+    }
+  }
+
   void render(){
-    textAlign(LEFT);
+    this.checkFontSize();
     pushMatrix();
-    translate(this.position.x,this.position.y);
+    translate(this.position.x,this.position.y); //Going to UIScrollList position
     fill(this.backgroundColor);
-    stroke(this.strokeColor);
-    rect(0,0,this.dimensions.x,this.dimensions.y);
+    stroke(this.strokeColor); //Setting box colors
+    rect(0,0,this.dimensions.x,this.dimensions.y);  //Drawing box
+    textAlign(LEFT);  //Setting text properties
+    textSize(this.fontSize);
+    fill(this.textColor);
     if (this.scrollbar.visible){
-      textSize(this.fontSize);
-      fill(this.textColor);
       int offset = floor(this.scrollbar.progress * (this.elements.size() - this.elementsToDraw +1));
       if (offset > this.elements.size() - this.elementsToDraw){
         offset = this.elements.size() - this.elementsToDraw;
@@ -229,17 +255,11 @@ class UIScrollList extends UIElement{
         }
       }
     }else{
-      textSize(this.fontSize);
-      fill(this.textColor);
-      int offset = floor(this.scrollbar.progress * (this.elements.size() - this.elementsToDraw +1));
-      if (offset > this.elements.size() - this.elementsToDraw){
-        offset = this.elements.size() - this.elementsToDraw;
-      }
       for(int i = 0;i < elementsToDraw; i++){
-        if (textWidth(elements.get(i + offset)) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
-          text(truncateTextToWidth(elements.get(i+offset),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
+        if (textWidth(elements.get(i)) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
+          text(truncateTextToWidth(elements.get(i),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }else{
-          text(elements.get(i + offset),this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
+          text(elements.get(i),this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }
       }
     }
@@ -247,9 +267,6 @@ class UIScrollList extends UIElement{
     if(this.scrollbar.visible){
       this.scrollbar.render();
     }
-  }
-  void updateScroll(){
-      
   }
 }
 
