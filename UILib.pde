@@ -141,12 +141,13 @@ class UITextBox extends UIElement{
 }
 
 class UIScrollList extends UIElement{
-  color strokeColor,backgroundColor, textColor;
+  color strokeColor,backgroundColor, textColor, selectedIndexBackgroundColor;
   float fontSize, margin, scrollBarWidth;
-  int elementsToDraw, selectedElement;
+  int elementsToDraw, selectedIndex;
   ArrayList<String> elements;
   UIScrollBar scrollbar;
   float _lastFontSize;
+  boolean clicked;
     
   UIScrollList(float x, float y, float w, float h){
     UIElementList.add(this);
@@ -158,19 +159,21 @@ class UIScrollList extends UIElement{
     this.strokeColor = color(0,255,255);
     this.backgroundColor = color(255,0,0,0);
     this.textColor = color(255);
+    this.selectedIndexBackgroundColor = color(0,255,255,50);
     this.fontSize = 20;
     this.margin = this.fontSize;
     this.elementsToDraw = 0;
-    this.selectedElement = -1;
+    this.selectedIndex = -1;
     this.elements = new ArrayList<String>();
     this.scrollBarWidth = this.margin;
     this.scrollbar = new UIScrollBar(this.position.x +  this.dimensions.x - this.margin - this.scrollBarWidth, this.position.y + this.margin, this.scrollBarWidth, this.dimensions.y - 2 * this.margin, 1);
     this.scrollbar.visible = false;
     this._lastFontSize = this.fontSize;
+    this.clicked = false;
   }
 
   void recalculateScrollButtonSize(){
-    println("Recalculating scrollbar button size: " + str(this.elementsToDraw) + "/" + str(this.elements.size()));
+    //println("Recalculating scrollbar button size: " + str(this.elementsToDraw) + "/" + str(this.elements.size()));
     this.scrollbar.buttonToHeightRatio = this.elementsToDraw / float(this.elements.size());
   }
 
@@ -241,13 +244,18 @@ class UIScrollList extends UIElement{
     rect(0,0,this.dimensions.x,this.dimensions.y);  //Drawing box
     textAlign(LEFT);  //Setting text properties
     textSize(this.fontSize);
-    fill(this.textColor);
     if (this.scrollbar.visible){
       int offset = floor(this.scrollbar.progress * (this.elements.size() - this.elementsToDraw +1));
       if (offset > this.elements.size() - this.elementsToDraw){
         offset = this.elements.size() - this.elementsToDraw;
       }
       for(int i = 0;i < elementsToDraw; i++){
+        if(i+offset == this.selectedIndex){
+          noStroke();
+          fill(this.selectedIndexBackgroundColor);
+          rect(this.margin, this.margin + this.fontSize * i * 2, this.dimensions.x-3*this.margin - this.scrollBarWidth,this.fontSize);
+        }
+        fill(this.textColor);
         if (textWidth(elements.get(i+offset)) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
           text(truncateTextToWidth(elements.get(i + offset),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }else{
@@ -256,6 +264,12 @@ class UIScrollList extends UIElement{
       }
     }else{
       for(int i = 0;i < elementsToDraw; i++){
+        if(i == this.selectedIndex){
+          noStroke();
+          fill(this.selectedIndexBackgroundColor);
+          rect(this.margin, this.margin + this.fontSize * i * 2, this.dimensions.x-2*this.margin,this.fontSize);
+        }
+        fill(this.textColor);
         if (textWidth(elements.get(i)) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
           text(truncateTextToWidth(elements.get(i),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }else{
@@ -411,9 +425,15 @@ void processUILib(){
     if (UIButtonList.get(i).released){
       UIButtonList.get(i).released = false;
     }
-  }for(int i = 0; i< UITextBoxList.size(); i++){
+  }
+  for(int i = 0; i< UITextBoxList.size(); i++){
     if (UITextBoxList.get(i).clicked){
       UITextBoxList.get(i).clicked = false;
+    }
+  }
+  for(int i = 0; i< UIScrollListList.size(); i++){
+    if (UIScrollListList.get(i).clicked){
+      UIScrollListList.get(i).clicked = false;
     }
   }
   UIScrollBar sb = getUIScrollBarByLabel(selectedUIElement);
@@ -455,6 +475,34 @@ void processUILibMousePressed(){
         sb.progress = 1;
       }else if (sb.progress < 0){
         sb.progress = 0;
+      }
+      return;
+    }
+  }
+
+  UIScrollList sl = checkMouseOverUIScrollList();
+  if (sl != null && sb == null){
+    if (sl.visible){
+      selectedUIElement = sl.label;
+      sl.clicked = true;
+      if (sl.scrollbar.visible){
+        int offset = floor(sl.scrollbar.progress * (sl.elements.size() - sl.elementsToDraw +1));
+        if (sl.scrollbar.progress == 1){
+          offset--;
+        }
+        for(int i = 0; i < sl.elements.size(); i++){
+          if (mouseY > sl.position.y + sl.margin + i * sl.fontSize * 2 && mouseY < sl.position.y+sl.margin + (i*2+1)*sl.fontSize){
+            sl.selectedIndex = i + offset;
+            println("Selected index " + str(sl.selectedIndex));
+          }
+        }
+      }else{
+        for(int i = 0; i < sl.elements.size(); i++){
+          if (mouseY > sl.position.y + sl.margin + i * sl.fontSize * 2 && mouseY < sl.position.y+sl.margin + (i*2+1)*sl.fontSize){
+            sl.selectedIndex = i;
+            println("Selected index " + str(sl.selectedIndex));
+          }
+        }
       }
       return;
     }
@@ -595,6 +643,15 @@ UITextBox checkMouseOverUITextBox(){
   for(int i = 0; i < UITextBoxList.size();i++){
     if (UITextBoxList.get(i).position.x < mouseX && UITextBoxList.get(i).position.x + UITextBoxList.get(i).dimensions.x > mouseX && UITextBoxList.get(i).position.y < mouseY && UITextBoxList.get(i).position.y + UITextBoxList.get(i).dimensions.y > mouseY){
       return UITextBoxList.get(i);
+    }
+  }
+  return null;
+}
+
+UIScrollList checkMouseOverUIScrollList(){
+  for(int i = 0; i < UIScrollListList.size();i++){
+    if (UIScrollListList.get(i).position.x < mouseX && UIScrollListList.get(i).position.x + UIScrollListList.get(i).dimensions.x > mouseX && UIScrollListList.get(i).position.y < mouseY && UIScrollListList.get(i).position.y + UIScrollListList.get(i).dimensions.y > mouseY){
+      return UIScrollListList.get(i);
     }
   }
   return null;

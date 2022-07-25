@@ -84,8 +84,9 @@ void drawCannonTurret(float x, float y, float s, float r, float str){
 }
 
 void drawMissileTurret(float x, float y, float s, float str){
-	pushMatrix();
+	pushMatrix(); //Correction because it looked too big
 	translate(x,y);
+	scale(0.75);
 	scale(s);
 	scale(1/400.0);
 	stroke(0,255,255);
