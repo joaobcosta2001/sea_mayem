@@ -70,6 +70,10 @@ void handleConnectivity(){
     StringTokenizer st = new StringTokenizer(m,"|");
     while(st.hasMoreTokens()){
       m = st.nextToken();
+      if (m.charAt(0) == '\0'){
+        continue;
+      }
+      println("Received message: |" + m + "|");
       if(m.length() >= 11){
         if (m.substring(0,11).equals("teams_info:")){
           println("Received teams info");
@@ -90,8 +94,26 @@ void handleConnectivity(){
       }
       if(m.length() >= 11){
         if (m.substring(0,11).equals("boats_info:")){
-          println("Received boats info: |" + m + "|");
+          println("Received boats info");
           updateBoats(m);
+          updatePointBars();
+        }
+      }
+      if(m.length() >= 17){
+        if (m.substring(0,17).equals("not_enough_points")){
+          println("Received not enough points");
+          new UIMessage("Já não tem pontos restantes!");
+          if (selectedBuildingMenuPart == "Torre de Defesa Frontal"){
+            scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
+          }else if(selectedBuildingMenuPart == "Torre de Defesa Traseira"){
+            scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bat;
+          }else if(selectedBuildingMenuPart == "Torre Frontal"){
+            scrolllist_building_part_select.selectedIndex = thisPlayer.boat.ft;
+          }else if(selectedBuildingMenuPart == "Torre Intermedia"){
+            scrolllist_building_part_select.selectedIndex = thisPlayer.boat.mt;
+          }else if(selectedBuildingMenuPart == "Torre Traseira"){
+            scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
+          }
         }
       }
     }
@@ -99,7 +121,6 @@ void handleConnectivity(){
 }
 
 void updateTeamsAndReadyStates(String m){
-  println("Received players: |" + m + "|");
   int lastIndex = 11,currentIndex = 12,team = 1;
   while(currentIndex!=m.length()){ //Loop through received message
     if(m.charAt(currentIndex) == '\0'){ //If end of message is reached break
@@ -133,16 +154,13 @@ void updateTeamsAndReadyStates(String m){
 void updateTeamScrollLists(){
   scrolllist_team_select_team_1.removeAll();
   scrolllist_team_select_team_2.removeAll();
-  print("Player teams: ");
   for (int i = 0; i< playerList.size();i++){
-    print(str(playerList.get(i).team) + ",");
     if (playerList.get(i).team == 1){
       scrolllist_team_select_team_1.add(playerList.get(i).name);
     }else{
       scrolllist_team_select_team_2.add(playerList.get(i).name);
     }
   }
-  println("");
 }
 
 void updateBoats(String m){ //updates boats' displays

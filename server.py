@@ -9,8 +9,6 @@ teamBalancing = True
 HOST = "127.0.0.1"
 PORT = 4500
 
-#-------GAME CODE---------
-
 team1 = []
 team2 = []
 playerList = []
@@ -20,7 +18,7 @@ broadcastQueue = Queue()
 class Player:
     def __init__(self,addr,p):
         self.name = ""
-        self.teamReady = False
+        self.ready = False
         self.address = addr
         self.port = p
         self.boat = Boat()
@@ -32,10 +30,39 @@ class Player:
             team1.append(self)
             self.team = 1
 
+MAX_NORMAL_POINTS = 40
+MAX_SPECIAL_POINTS = 20
+
+def getTurretPointCost(p):
+    if p == -1:
+        return -1
+    if p == 0:
+        return 10
+    if p == 1:
+        return 15
+    if p == 2:
+        return 5
+    print("ERROR finding point cost of turret of type " + str(p))
+
+def getAntiTurretPointCost(p):
+    if p == -1:
+        return 0
+    if p == 0:
+        return 10
+    if p == 1:
+        return 15
+    if p == 2:
+        return 5
+    print("ERROR finding point cost of anti turret of type "+ str(p))
+
 class Boat:
     def __init__(self):
-        self.fat = 0
+        self.wastedPoints = 0
         self.turrets = Turrets()
+    def getRemainingPoints(self):
+        print(self.turrets == None)
+        return MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS - self.wastedPoints - getTurretPointCost(self.turrets.ft) - getTurretPointCost(self.turrets.mt) - getTurretPointCost(self.turrets.bt) - getAntiTurretPointCost(self.turrets.fat) - getAntiTurretPointCost(self.turrets.fat)
+        
 
 
 class Turrets:
@@ -50,10 +77,12 @@ class Turrets:
 for i in range(26):
     p = Player("127.0.0.1",6400+i)
     p.name = "Bot_" + str(p.port)
-    p.teamReady = True
+    p.ready = True
+
 
 for i in range(5):
-    playerList[i].teamReady = True
+    playerList[i].ready = True
+
 
 
 def getPlayerByName(t):
@@ -75,14 +104,14 @@ def formatTeamInfo():
     messageToSend = "teams_info:"
     for player in team1:
         messageToSend = messageToSend + player.name
-        if(player.teamReady):
+        if(player.ready):
             messageToSend = messageToSend + "V1"
         else:
             messageToSend = messageToSend + "X1"
         messageToSend = messageToSend + ","
     for player in team2:
         messageToSend = messageToSend + player.name
-        if(player.teamReady):
+        if(player.ready):
             messageToSend = messageToSend + "V2"
         else:
             messageToSend = messageToSend + "X2"
@@ -107,7 +136,7 @@ def main():
     except:
         print("Socket binding failed (Error: " + str(sys.exc_info()) + ")")
         sys.exit()
-    s.listen(40)
+    s.listen(64)
     try:
         Thread(target = broadcastThread).start()
     except:
@@ -159,34 +188,44 @@ def clientThread(connection, ip, port):
             
 
         if (message == "ready"):
-            getPlayerByName(user).teamReady = True
+            getPlayerByName(user).ready = True
             if checkAllPlayersReady():
+                print("All players are ready, going to building screen")
                 broadcast("building_screen")
                 broadcast(formatBoatsInfo())
+                for player in playerList:
+                    player.ready = False
             else:
                 broadcast(formatTeamInfo())
 
         if(message == "unready"):
-            getPlayerByName(user).teamReady = False
+            getPlayerByName(user).ready = False
             broadcast(formatTeamInfo())
 
         if message[:11] == "change_part":
-            if message[12:14] == "ft":
-                print("Changing front turret")
-                getPlayerByName(user).boat.turrets.ft = int(message[15:])
-            elif message[12:14] == "mt":
-                print("Changing middle turret")
-                getPlayerByName(user).boat.turrets.mt = int(message[15:])
-            elif message[12:14] == "bt":
-                print("Changing back turret")
-                getPlayerByName(user).boat.turrets.bt = int(message[15:])
-            elif message[12:15] == "fat":
-                print("Changing front anti-turret")
-                getPlayerByName(user).boat.turrets.fat = int(message[16:])
-            elif message[12:15] == "bat":
-                print("Changing back anti-turret")
-                getPlayerByName(user).boat.turrets.bat = int(message[16:])
-            broadcast(formatBoatsInfo())
+            p = getPlayerByName(user)
+            if message[12:14] == "ft" or message[12:14] == "mt" or message[12:14] == "bt":
+                turretValue = int(message[15:])
+                if getTurretPointCost(turretValue) < p.boat.getRemainingPoints():
+                    if message[12:14] == "ft":
+                        p.boat.turrets.ft = turretValue
+                    elif message[12:14] == "mt":
+                        p.boat.turrets.mt = turretValue
+                    elif message[12:14] == "bt":
+                        p.boat.turrets.bt = turretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    connection.sendall(bytes("not_enough_points",'utf-8'))
+            elif message[12:15] == "fat" or message[12:15] == "bat":
+                turretValue = int(message[16:])
+                if getAntiTurretPointCost(turretValue) < p.boat.getRemainingPoints():
+                    if message[12:15] == "fat":
+                        p.boat.turrets.fat = turretValue
+                    elif message[12:15] == "bat":
+                        p.boat.turrets.bat = turretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    connection.sendall(bytes("not_enough_points",'utf-8'))
 
 
     connectionList.remove(connection)
@@ -214,12 +253,12 @@ def checkAllPlayersReady():
     if len(playerList) < minPlayerNumber:
         return False
     for p in playerList:
-        if p.teamReady:
+        if p.ready:
             readyPlayerCount+=1
     if readyPlayerCount == len(playerList):
         if teamBalancing and (len(team1) > len(team2) + 1 or len(team2) > len(team1) +1):
             for p in playerList:
-                p.teamReady = False
+                p.ready = False
             broadcast(formatTeamInfo())
             broadcast("teams_unbalanced")
             return False
