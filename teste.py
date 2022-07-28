@@ -1,5 +1,2 @@
-s = "ola"
-if (s.equals("ola")):
-    print("SUCESSO")
-else:
-    print("ERRO")
+s = "change_part:fat:2"
+print(s[:12])

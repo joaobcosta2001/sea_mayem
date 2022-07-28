@@ -1,11 +1,15 @@
 class Boat{
   PVector position;
   float angle;
-  Display display;
+  int ft,mt,bt,fat,bat;
   Boat(){
     this.position = new PVector(0,0);
     this.angle = 0;
-    this.display = new Display();
+    this.ft = -1;
+    this.mt = -1;
+    this.bt = -1;
+    this.fat = -1;
+    this.bat = -1;
   }
   void drawIcon(){
     pushMatrix();
@@ -20,16 +24,16 @@ class Boat{
   }
 }
 
-class Display{
-  int frontTurret,middleTurret,backTurret, frontAntiTurret, backAntiTurret, engine, navigation;
-  Display(){
-    frontTurret = 0;
-    middleTurret = 0;
-    backTurret = 0;
-    backAntiTurret = 0;
-    frontAntiTurret = 0;
-    navigation = 0;
-    engine = 0;
+class Player{
+  String name;
+  Boat boat;
+  boolean ready;
+  int team;
+  Player(String n){
+    playerList.add(this);
+    this.name = n;
+    this.boat = new Boat();
+    this.ready = false;
   }
 }
 

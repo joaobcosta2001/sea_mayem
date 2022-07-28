@@ -23,6 +23,7 @@ class Player:
         self.teamReady = False
         self.address = addr
         self.port = p
+        self.boat = Boat()
         playerList.append(self)
         if len(team1) > len(team2):
             team2.append(self)
@@ -30,6 +31,20 @@ class Player:
         else:
             team1.append(self)
             self.team = 1
+
+class Boat:
+    def __init__(self):
+        self.fat = 0
+        self.turrets = Turrets()
+
+
+class Turrets:
+    def __init__(self):
+        self.fat = -1
+        self.bat = -1
+        self.ft = -1
+        self.bt = -1
+        self.mt = -1
 
 
 for i in range(26):
@@ -61,20 +76,28 @@ def formatTeamInfo():
     for player in team1:
         messageToSend = messageToSend + player.name
         if(player.teamReady):
-            messageToSend = messageToSend + "V"
+            messageToSend = messageToSend + "V1"
         else:
-            messageToSend = messageToSend + "X"
+            messageToSend = messageToSend + "X1"
         messageToSend = messageToSend + ","
-    messageToSend = messageToSend + ","
     for player in team2:
         messageToSend = messageToSend + player.name
         if(player.teamReady):
-            messageToSend = messageToSend + "V"
+            messageToSend = messageToSend + "V2"
         else:
-            messageToSend = messageToSend + "X"
+            messageToSend = messageToSend + "X2"
         messageToSend = messageToSend + ","
     messageToSend = messageToSend[0:-1]
     return messageToSend
+
+#Returns a string with the turret displays of all boats with syntax:
+#   Bob:1,3,-1,3,4;Jack:2,2,2,2,3;
+def formatBoatsInfo():
+    print("Sending boats info")
+    m = "boats_info:"
+    for player in playerList:
+        m = m + player.name + ":" + str(player.boat.turrets.ft) + "," + str(player.boat.turrets.mt) + "," + str(player.boat.turrets.bt) + "," + str(player.boat.turrets.fat) + "," + str(player.boat.turrets.bat) + ";"
+    return m
 
 def main():
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -139,12 +162,33 @@ def clientThread(connection, ip, port):
             getPlayerByName(user).teamReady = True
             if checkAllPlayersReady():
                 broadcast("building_screen")
+                broadcast(formatBoatsInfo())
             else:
                 broadcast(formatTeamInfo())
 
         if(message == "unready"):
             getPlayerByName(user).teamReady = False
             broadcast(formatTeamInfo())
+
+        if message[:11] == "change_part":
+            if message[12:14] == "ft":
+                print("Changing front turret")
+                getPlayerByName(user).boat.turrets.ft = int(message[15:])
+            elif message[12:14] == "mt":
+                print("Changing middle turret")
+                getPlayerByName(user).boat.turrets.mt = int(message[15:])
+            elif message[12:14] == "bt":
+                print("Changing back turret")
+                getPlayerByName(user).boat.turrets.bt = int(message[15:])
+            elif message[12:15] == "fat":
+                print("Changing front anti-turret")
+                getPlayerByName(user).boat.turrets.fat = int(message[16:])
+            elif message[12:15] == "bat":
+                print("Changing back anti-turret")
+                getPlayerByName(user).boat.turrets.bat = int(message[16:])
+            broadcast(formatBoatsInfo())
+
+
     connectionList.remove(connection)
     playerList.remove(player)
     if player.team == 1:

@@ -1,13 +1,11 @@
 import java.net.*;
 
 int mapSize = 9; //Size in km
-String currentScreen = "drawLoadingScreen";
-String playerName = "name";
-boolean teamSelectReady = false;
+String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
+String playerName = "name"; //variable to hold the name of the client
+Player thisPlayer = null;
 
-ArrayList<Boolean> team_1_ready = new ArrayList<Boolean>(), team_2_ready = new ArrayList<Boolean>();
-
-Boat playerBoat = new Boat();
+ArrayList<Player> playerList = new ArrayList<Player>();
 
 void setup(){
   size(1000,1000);
@@ -16,12 +14,6 @@ void setup(){
   initializeInputLib();
   initializeUILib();
   font_default = font_karma_suture_100;
-
-  playerBoat.display.frontTurret = 1;
-  playerBoat.display.middleTurret = 2;
-  playerBoat.display.backTurret = 3;
-  playerBoat.display.frontAntiTurret = 1;
-  playerBoat.display.backAntiTurret = 2;
 }
 
 
@@ -70,7 +62,7 @@ void draw(){
       new UIMessage("Falha na conexão!");
       currentScreen = "main";
     }else{
-      sendServerRequest("(" + playerName + ")request_teams");
+      sendServerRequest("request_teams");
       resetVisibilities();
       currentScreen = "wait_connect_response";
     }
@@ -87,12 +79,12 @@ void draw(){
   }else if(currentScreen == "team_select"){
     drawTeamSelectMenu();
     if(button_team_select_swap.clicked){
-      sendServerRequest("(" + playerName + ")swap_teams");
+      sendServerRequest("swap_teams");
     }
-    if(button_team_select_ready.clicked && !teamSelectReady){
-      sendServerRequest("(" + playerName + ")ready");
-    }else if(button_team_select_ready.clicked && teamSelectReady){
-      sendServerRequest("(" + playerName + ")unready");
+    if(button_team_select_ready.clicked && !thisPlayer.ready){
+      sendServerRequest("ready");
+    }else if(button_team_select_ready.clicked && thisPlayer.ready){
+      sendServerRequest("unready");
     }
   }else if(currentScreen == "building_screen_loading"){
     scrolllist_team_select_team_1.visible = false;
@@ -114,24 +106,22 @@ void draw(){
   }else if(currentScreen == "building_screen"){
     drawBuildingMenu();
     if (scrolllist_building_part_select.clicked){
-      println("Clicado!: " + str(scrolllist_building_part_select.selectedIndex));
       if (selectedBuildingMenuPart == "Torre de Defesa Frontal"){
-        playerBoat.display.frontAntiTurret = scrolllist_building_part_select.selectedIndex;
+        sendServerRequest("change_part:fat:" + str(scrolllist_building_part_select.selectedIndex));
       }else if (selectedBuildingMenuPart == "Torre de Defesa Traseira"){
-        playerBoat.display.backAntiTurret = scrolllist_building_part_select.selectedIndex;
+        sendServerRequest("change_part:bat:" + str(scrolllist_building_part_select.selectedIndex));
       }else if (selectedBuildingMenuPart == "Torre Frontal"){
-        playerBoat.display.frontTurret = scrolllist_building_part_select.selectedIndex;
+        sendServerRequest("change_part:ft:" + str(scrolllist_building_part_select.selectedIndex));
       }else if (selectedBuildingMenuPart == "Torre Intermedia"){
-        playerBoat.display.middleTurret = scrolllist_building_part_select.selectedIndex;
+        sendServerRequest("change_part:mt:" + str(scrolllist_building_part_select.selectedIndex));
       }else if (selectedBuildingMenuPart == "Torre Traseira"){
-        playerBoat.display.backTurret = scrolllist_building_part_select.selectedIndex;
+        sendServerRequest("change_part:bt:" + str(scrolllist_building_part_select.selectedIndex));
       }
-      println("Front Anti Turret: " + str(playerBoat.display.frontAntiTurret));
     }
   }
   handleConnectivity();
   processUILib();
-  if(currentScreen == "team_select" && teamSelectReady){
+  if(currentScreen == "team_select" && thisPlayer.ready){
     drawGreenTick(width * 10.5/16,height*8.25/9,width*.5*16/15000);
   }
 }
@@ -223,7 +213,7 @@ void drawTeamSelectMenu(){
   UIButton b = button_team_select_ready;
   textSize(b.fontSize);
   fill(255);
-  text(str(countReadyPlayers()) + "/" + str(team_1_ready.size() + team_2_ready.size()),b.position.x + b.dimensions.x *1.25,b.position.y+b.dimensions.y-b.margin-textDescent());
+  text(str(countReadyPlayers()) + "/" + str(playerList.size()),b.position.x + b.dimensions.x *1.25,b.position.y+b.dimensions.y-b.margin-textDescent());
 }
 
 
@@ -253,35 +243,35 @@ void checkBuildingMenuSelections(){
     scrolllist_building_part_select.add("Torre anti-canhao");
     scrolllist_building_part_select.add("Torre anti-missil");
     scrolllist_building_part_select.add("Torre anti-torpedo");
-    scrolllist_building_part_select.selectedIndex = playerBoat.display.frontAntiTurret;
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*5.73165/9) < height * 0.171875/9){
     selectedBuildingMenuPart = "Torre de Defesa Traseira";
     scrolllist_building_part_select.removeAll();
     scrolllist_building_part_select.add("Torre anti-canhao");
     scrolllist_building_part_select.add("Torre anti-missil");
     scrolllist_building_part_select.add("Torre anti-torpedo");
-    scrolllist_building_part_select.selectedIndex = playerBoat.display.backAntiTurret;
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*3.2721875/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Frontal";
     scrolllist_building_part_select.removeAll();
     scrolllist_building_part_select.add("Canhao");
     scrolllist_building_part_select.add("Lanca-misseis");
     scrolllist_building_part_select.add("Torpedeiro");
-    scrolllist_building_part_select.selectedIndex = playerBoat.display.frontTurret;
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.ft;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*4.1203125/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Intermedia";
     scrolllist_building_part_select.removeAll();
     scrolllist_building_part_select.add("Canhao");
     scrolllist_building_part_select.add("Lanca-misseis");
     scrolllist_building_part_select.add("Torpedeiro");
-    scrolllist_building_part_select.selectedIndex = playerBoat.display.middleTurret;
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.mt;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*6.4950625/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Traseira";
     scrolllist_building_part_select.removeAll();
     scrolllist_building_part_select.add("Canhao");
     scrolllist_building_part_select.add("Lanca-misseis");
     scrolllist_building_part_select.add("Torpedeiro");
-    scrolllist_building_part_select.selectedIndex = playerBoat.display.backTurret;
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
   }else if(mouseX > width*5/16.0 && mouseX < width*11/16.0 && mouseY > height*1.5/9.0 && mouseY < height*8/9.0){
     selectedBuildingMenuPart = "";
     scrolllist_building_part_select.removeAll();
@@ -318,13 +308,8 @@ void keyReleased(){
 
 int countReadyPlayers(){
   int c = 0;
-  for(int i = 0; i < team_1_ready.size(); i++){
-    if(team_1_ready.get(i).booleanValue()){
-      c++;
-    }
-  }
-  for(int i = 0; i < team_2_ready.size(); i++){
-    if(team_2_ready.get(i).booleanValue()){
+  for (int i = 0; i < playerList.size();i++){
+    if (playerList.get(i).ready){
       c++;
     }
   }
@@ -352,13 +337,13 @@ void drawBoatDisplay(){
   translate(0,150*nDim); //Go to back anti turret position
   mouseCoords.y -= 150*nDim;
   rotate(atan2(mouseCoords.y,mouseCoords.x) + PI/2);
-  if(playerBoat.display.backTurret == -1){
+  if(thisPlayer.boat.bat == -1){
     circle(0,0,100*nDim/2.0);
-  }else if(playerBoat.display.backAntiTurret == 0){
+  }else if(thisPlayer.boat.bat == 0){
     drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
-  }else if(playerBoat.display.backAntiTurret == 1){
+  }else if(thisPlayer.boat.bat == 1){
     drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
-  }else if(playerBoat.display.backAntiTurret == 2){
+  }else if(thisPlayer.boat.bat == 2){
     drawAntiTorpedoTurret(0,0,100*nDim/2.0,inlineStroke);
   }
   popMatrix();
@@ -368,13 +353,13 @@ void drawBoatDisplay(){
   translate(0,-212.5*nDim); //Go to front turret position
   mouseCoords.y += 212.5*nDim;
   rotate(atan2(mouseCoords.y,mouseCoords.x) + PI/2);
-  if(playerBoat.display.frontTurret == -1){
+  if(thisPlayer.boat.ft == -1){
     circle(0,0,150*nDim/2.0);
-  }else if(playerBoat.display.frontTurret == 0){
+  }else if(thisPlayer.boat.ft == 0){
     drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(playerBoat.display.frontTurret == 1){
+  }else if(thisPlayer.boat.ft == 1){
     drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(playerBoat.display.frontTurret == 2){
+  }else if(thisPlayer.boat.ft == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
@@ -384,13 +369,13 @@ void drawBoatDisplay(){
   translate(0,-87.5*nDim); //Go to middle turret position
   mouseCoords.y += 87.5*nDim;
   rotate(atan2(mouseCoords.y,mouseCoords.x) + PI/2);
-  if(playerBoat.display.middleTurret == -1){
+  if(thisPlayer.boat.mt == -1){
     circle(0,0,150*nDim/2.0);
-  }else if(playerBoat.display.middleTurret == 0){
+  }else if(thisPlayer.boat.mt == 0){
     drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(playerBoat.display.middleTurret == 1){
+  }else if(thisPlayer.boat.mt == 1){
     drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(playerBoat.display.middleTurret == 2){
+  }else if(thisPlayer.boat.mt == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
@@ -400,13 +385,13 @@ void drawBoatDisplay(){
   translate(0,262.5*nDim); //Go to back turret position
   mouseCoords.y -= 262.5*nDim;
   rotate(atan2(mouseCoords.y,mouseCoords.x) + PI/2);
-  if(playerBoat.display.backTurret == -1){
+  if(thisPlayer.boat.bt == -1){
     circle(0,0,150*nDim/2.0);
-  }else if(playerBoat.display.backTurret == 0){
+  }else if(thisPlayer.boat.bt == 0){
     drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(playerBoat.display.backTurret == 1){
+  }else if(thisPlayer.boat.bt == 1){
     drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(playerBoat.display.backTurret == 2){
+  }else if(thisPlayer.boat.bt == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
@@ -416,17 +401,26 @@ void drawBoatDisplay(){
   translate(0,-300*nDim); //Go to front anti turret position
   mouseCoords.y += 300*nDim;
   rotate(atan2(mouseCoords.y,mouseCoords.x) + PI/2);
-  if(playerBoat.display.frontTurret == -1){
+  if(thisPlayer.boat.fat == -1){
     circle(0,0,100*nDim/2.0);
-  }else if(playerBoat.display.frontAntiTurret == 0){
+  }else if(thisPlayer.boat.fat == 0){
     drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
-  }else if(playerBoat.display.frontAntiTurret == 1){
+  }else if(thisPlayer.boat.fat == 1){
     drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
-  }else if(playerBoat.display.frontAntiTurret == 2){
+  }else if(thisPlayer.boat.fat == 2){
     drawAntiTorpedoTurret(0,0,100*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y -= 300*nDim;
 
   popMatrix();
+}
+
+Player getPlayerByName(String m){
+  for (int i = 0; i < playerList.size();i++){
+    if (playerList.get(i).name.equals(m)){
+      return playerList.get(i);
+    }
+  }
+  return null;
 }
