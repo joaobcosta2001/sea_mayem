@@ -123,7 +123,6 @@ void handleConnectivity(){
           int np,sp;
           np = Integer.parseInt(String.valueOf(m.substring(index1,index2)));
           progressbar_bulding_total_normal_points.progress = float(np)/(MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS);
-          println("DEBUG np:" + str(np) + "    total:" + str(MAX_NORMAL_POINTS+MAX_SPECIAL_POINTS));
           progressbar_bulding_total_special_points.position.x = width*1.5/16 + width*3.0/16*progressbar_bulding_total_normal_points.progress;
           index1 = index2 +1;
           index2 = m.length();

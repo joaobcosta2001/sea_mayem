@@ -148,6 +148,7 @@ class UIScrollList extends UIElement{
   UIScrollBar scrollbar;
   float _lastFontSize;
   boolean clicked;
+  PFont font;
     
   UIScrollList(float x, float y, float w, float h){
     UIElementList.add(this);
@@ -170,6 +171,7 @@ class UIScrollList extends UIElement{
     this.scrollbar.visible = false;
     this._lastFontSize = this.fontSize;
     this.clicked = false;
+    this.font = font_default;
   }
 
   void recalculateScrollButtonSize(){
@@ -235,6 +237,14 @@ class UIScrollList extends UIElement{
     }
   }
 
+  int getIndexOffset(){
+    int offset = floor(this.scrollbar.progress * (this.elements.size() - this.elementsToDraw +1));
+    if (offset > this.elements.size() - this.elementsToDraw){
+      offset = this.elements.size() - this.elementsToDraw;
+    }
+    return offset;
+  }
+
   void render(){
     this.checkFontSize();
     pushMatrix();
@@ -243,23 +253,20 @@ class UIScrollList extends UIElement{
     stroke(this.strokeColor); //Setting box colors
     rect(0,0,this.dimensions.x,this.dimensions.y);  //Drawing box
     textAlign(LEFT);  //Setting text properties
+    textFont(this.font);
     textSize(this.fontSize);
     if (this.scrollbar.visible){
-      int offset = floor(this.scrollbar.progress * (this.elements.size() - this.elementsToDraw +1));
-      if (offset > this.elements.size() - this.elementsToDraw){
-        offset = this.elements.size() - this.elementsToDraw;
-      }
       for(int i = 0;i < elementsToDraw; i++){
-        if(i+offset == this.selectedIndex){
+        if(i+this.getIndexOffset() == this.selectedIndex){
           noStroke();
           fill(this.selectedIndexBackgroundColor);
           rect(this.margin, this.margin + this.fontSize * i * 2, this.dimensions.x-3*this.margin - this.scrollBarWidth,this.fontSize);
         }
         fill(this.textColor);
-        if (textWidth(elements.get(i+offset)) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
-          text(truncateTextToWidth(elements.get(i + offset),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
+        if (textWidth(elements.get(i+this.getIndexOffset())) > this.dimensions.x - 3 * this.margin - this.scrollBarWidth){
+          text(truncateTextToWidth(elements.get(i + this.getIndexOffset()),this.dimensions.x - 3 * this.margin - this.scrollBarWidth - textWidth("..."), UIBEGINNING) + "...",this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }else{
-          text(elements.get(i+offset),this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
+          text(elements.get(i+this.getIndexOffset()),this.margin, this.margin + this.fontSize + i * (this.fontSize*2) - textDescent());
         }
       }
     }else{
@@ -486,13 +493,9 @@ void processUILibMousePressed(){
       selectedUIElement = sl.label;
       sl.clicked = true;
       if (sl.scrollbar.visible){
-        int offset = floor(sl.scrollbar.progress * (sl.elements.size() - sl.elementsToDraw +1));
-        if (sl.scrollbar.progress == 1){
-          offset--;
-        }
         for(int i = 0; i < sl.elements.size(); i++){
           if (mouseY > sl.position.y + sl.margin + i * sl.fontSize * 2 && mouseY < sl.position.y+sl.margin + (i*2+1)*sl.fontSize){
-            sl.selectedIndex = i + offset;
+            sl.selectedIndex = i + sl.getIndexOffset();
             println("Selected index " + str(sl.selectedIndex));
           }
         }

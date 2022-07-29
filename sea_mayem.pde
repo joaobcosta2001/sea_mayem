@@ -104,6 +104,11 @@ void draw(){
     button_building_steal_intel.visible = true;
     button_building_ready.visible = true;
     currentScreen = "building_screen";
+    for(int i = 0; i < playerList.size();i++){
+      if(playerList.get(i).team == thisPlayer.team){
+        scrolllist_buiding_team_list.add(playerList.get(i).name);
+      }
+    }
   }else if(currentScreen == "building_screen"){
     drawBuildingMenu();
     if (scrolllist_building_part_select.clicked){
@@ -240,7 +245,7 @@ void drawBuildingMenu(){
   text(str(int(100*progressbar_building_navigation_points.progress)) + "%",width*4/16.0,height*4/9.0);
   text(str(int(100*progressbar_building_engine_points.progress)) + "%",width*4/16.0,height*4.75/9.0);
   textAlign(RIGHT);
-  text(int(progressbar_bulding_total_special_points.progress*MAX_SPECIAL_POINTS + progressbar_bulding_total_normal_points.progress * (MAX_SPECIAL_POINTS+MAX_NORMAL_POINTS)),width*1.25/16.0,height*1.5/9.0);
+  text(str(int(progressbar_bulding_total_special_points.progress*MAX_SPECIAL_POINTS + progressbar_bulding_total_normal_points.progress * (MAX_SPECIAL_POINTS+MAX_NORMAL_POINTS))) + "p",width*1.25/16.0,height*1.5/9.0);
 }
 
 String selectedBuildingMenuPart = "";
@@ -473,4 +478,21 @@ Player getPlayerByName(String m){
     }
   }
   return null;
+}
+
+/*
+NOT YET IMPLEMENTED
+Gives the position to draw extra icons after a scrollList entry.
+If the given index is off the list returns null. If the string in the index is too long also returns null
+*/
+PVector getScrollListIconDrawingPosition(int index, UIScrollList l){
+  textFont(l.font);
+  textSize(l.fontSize);
+  if (index < l.getIndexOffset() || index >= l.getIndexOffset() + l.elementsToDraw){
+    return null;
+  }
+  if((l.scrollbar.visible && textWidth(l.elements.get(index)) > l.dimensions.x - 3*l.margin - l.scrollBarWidth) || (!(l.scrollbar.visible) && textWidth(l.elements.get(index)) > l.dimensions.x -2*l.margin)){
+    return null;
+  }
+  return new PVector(l.position.x+l.margin+textWidth(l.elements.get(index))+l.fontSize, l.position.y + l.margin + l.fontSize*(0.5+2*index-l.getIndexOffset())+textDescent());
 }
