@@ -5,6 +5,7 @@ String currentScreen = "drawLoadingScreen"; //set the current screen as the init
 String playerName = "name"; //variable to hold the name of the client
 Player thisPlayer = null;
 
+
 ArrayList<Player> playerList = new ArrayList<Player>();
 
 void setup(){
@@ -143,8 +144,9 @@ void loadUIElements(){
   scrolllist_team_select_team_1 = new UIScrollList(width*2/16.0,height*2/9.0,width*5/16.0,height*5/9.0);
   scrolllist_team_select_team_2 = new UIScrollList(width*9/16.0,height*2/9.0,width*5/16.0,height*5/9.0);
   progressbar_bulding_total_normal_points = new UIProgressBar(width * 1.5/16, height * 1.25/9,width*3.0/16,height*0.25/9);
-  progressbar_bulding_total_special_points = new UIProgressBar(width * 1.5/16, height * 1.25/9,width*3.0/16,height*0.25/9);
+  progressbar_bulding_total_special_points = new UIProgressBar(width * 1.5/16, height * 1.25/9,width*3.0/16*MAX_SPECIAL_POINTS/(MAX_NORMAL_POINTS+MAX_SPECIAL_POINTS),height*0.25/9);
   progressbar_bulding_total_special_points.barColor = color(0,255,255);
+  progressbar_bulding_total_special_points.strokeColor = color(255,0,0,0);
   progressbar_building_guns_points = new UIProgressBar(width * 1.5/16, height * 2.25 / 9, width * 2.25/16, height * 0.25/9);
   progressbar_building_defence_points = new UIProgressBar(width * 1.5/16, height * 3.0 / 9, width * 2.25/16, height * 0.25/9);
   progressbar_building_navigation_points = new UIProgressBar(width * 1.5/16, height * 3.75 / 9, width * 2.25/16, height * 0.25/9);
@@ -233,6 +235,12 @@ void drawBuildingMenu(){
   textAlign(LEFT);
   fill(255);
   text(selectedBuildingMenuPart,width*11.5/16,height*.75/9-textDescent());
+  text(str(int(100*progressbar_building_guns_points.progress)) + "%",width*4/16.0,height*2.5/9.0);
+  text(str(int(100*progressbar_building_defence_points.progress)) + "%",width*4/16.0,height*3.25/9.0);
+  text(str(int(100*progressbar_building_navigation_points.progress)) + "%",width*4/16.0,height*4/9.0);
+  text(str(int(100*progressbar_building_engine_points.progress)) + "%",width*4/16.0,height*4.75/9.0);
+  textAlign(RIGHT);
+  text(int(progressbar_bulding_total_special_points.progress*MAX_SPECIAL_POINTS + progressbar_bulding_total_normal_points.progress * (MAX_SPECIAL_POINTS+MAX_NORMAL_POINTS)),width*1.25/16.0,height*1.5/9.0);
 }
 
 String selectedBuildingMenuPart = "";
@@ -240,37 +248,37 @@ void checkBuildingMenuSelections(){
   if (dist(mouseX,mouseY,width*8/16.0,height*2.6785/9) < height * 0.171875/9){
     selectedBuildingMenuPart = "Torre de Defesa Frontal";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torre anti-canhao (+10)");
-    scrolllist_building_part_select.add("Torre anti-missil (+15)");
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5)");
+    scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
+    scrolllist_building_part_select.add("Torre anti-missil (+15p)");
+    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*5.73165/9) < height * 0.171875/9){
     selectedBuildingMenuPart = "Torre de Defesa Traseira";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torre anti-canhao (+10)");
-    scrolllist_building_part_select.add("Torre anti-missil (+15)");
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5)");
+    scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
+    scrolllist_building_part_select.add("Torre anti-missil (+15p)");
+    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*3.2721875/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Frontal";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Canhao (+10)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15)");
-    scrolllist_building_part_select.add("Torpedeiro (+5)");
+    scrolllist_building_part_select.add("Canhao (+10p)");
+    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.ft;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*4.1203125/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Intermedia";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Canhao (+10)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15)");
-    scrolllist_building_part_select.add("Torpedeiro (+5)");
+    scrolllist_building_part_select.add("Canhao (+10p)");
+    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.mt;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*6.4950625/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Traseira";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Canhao (+10)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15)");
-    scrolllist_building_part_select.add("Torpedeiro (+5)");
+    scrolllist_building_part_select.add("Canhao (+10p)");
+    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
   }else if(mouseX > width*5/16.0 && mouseX < width*11/16.0 && mouseY > height*1.5/9.0 && mouseY < height*8/9.0){
     selectedBuildingMenuPart = "";
@@ -278,13 +286,14 @@ void checkBuildingMenuSelections(){
     scrolllist_building_part_select.selectedIndex = -1;
   }
 }
-
+int MAX_NORMAL_POINTS = 55;
+int MAX_SPECIAL_POINTS = 30;
 int MAX_ATTACK_POINTS = 45;
 int MAX_DEFENSE_POINTS = 30;
 int MAX_NAVIGATION_POINTS = 15;
 int MAX_ENGINE_POINTS = 15;
 
-//Updates de progress of the boaat building progress bar
+//Updates de progress of the boat building progress bar
 void updatePointBars(){
   if (thisPlayer == null){
     println("ERROR tried to update point progress bars but player is not yet created");

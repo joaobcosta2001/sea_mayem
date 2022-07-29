@@ -73,7 +73,7 @@ void handleConnectivity(){
       if (m.charAt(0) == '\0'){
         continue;
       }
-      println("Received message: |" + m + "|");
+      //println("Received message: |" + m + "|");
       if(m.length() >= 11){
         if (m.substring(0,11).equals("teams_info:")){
           println("Received teams info");
@@ -114,6 +114,22 @@ void handleConnectivity(){
           }else if(selectedBuildingMenuPart == "Torre Traseira"){
             scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
           }
+        }
+      }
+      if(m.length() >= 12){
+        if (m.substring(0,12).equals("points_info:")){
+          int index1 = 12;
+          int index2 = m.indexOf(':',index1);
+          int np,sp;
+          np = Integer.parseInt(String.valueOf(m.substring(index1,index2)));
+          progressbar_bulding_total_normal_points.progress = float(np)/(MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS);
+          println("DEBUG np:" + str(np) + "    total:" + str(MAX_NORMAL_POINTS+MAX_SPECIAL_POINTS));
+          progressbar_bulding_total_special_points.position.x = width*1.5/16 + width*3.0/16*progressbar_bulding_total_normal_points.progress;
+          index1 = index2 +1;
+          index2 = m.length();
+          sp = Integer.parseInt(String.valueOf(m.substring(index1,index2)));
+          progressbar_bulding_total_special_points.progress = float(sp)/MAX_SPECIAL_POINTS;
+          println("Received points info: " + str(np) + "np + " + str(sp) + "sp");
         }
       }
     }

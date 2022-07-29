@@ -30,12 +30,12 @@ class Player:
             team1.append(self)
             self.team = 1
 
-MAX_NORMAL_POINTS = 40
-MAX_SPECIAL_POINTS = 20
+MAX_NORMAL_POINTS = 55
+MAX_SPECIAL_POINTS = 30
 
 def getTurretPointCost(p):
     if p == -1:
-        return -1
+        return 0
     if p == 0:
         return 10
     if p == 1:
@@ -60,8 +60,7 @@ class Boat:
         self.wastedPoints = 0
         self.turrets = Turrets()
     def getRemainingPoints(self):
-        print(self.turrets == None)
-        return MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS - self.wastedPoints - getTurretPointCost(self.turrets.ft) - getTurretPointCost(self.turrets.mt) - getTurretPointCost(self.turrets.bt) - getAntiTurretPointCost(self.turrets.fat) - getAntiTurretPointCost(self.turrets.fat)
+        return MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS - self.wastedPoints - getTurretPointCost(self.turrets.ft) - getTurretPointCost(self.turrets.mt) - getTurretPointCost(self.turrets.bt) - getAntiTurretPointCost(self.turrets.fat) - getAntiTurretPointCost(self.turrets.bat)
         
 
 
@@ -191,6 +190,7 @@ def clientThread(connection, ip, port):
             getPlayerByName(user).ready = True
             if checkAllPlayersReady():
                 print("All players are ready, going to building screen")
+                broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
                 broadcast("building_screen")
                 broadcast(formatBoatsInfo())
                 for player in playerList:
@@ -204,28 +204,52 @@ def clientThread(connection, ip, port):
 
         if message[:11] == "change_part":
             p = getPlayerByName(user)
-            if message[12:14] == "ft" or message[12:14] == "mt" or message[12:14] == "bt":
-                turretValue = int(message[15:])
-                if getTurretPointCost(turretValue) < p.boat.getRemainingPoints():
-                    if message[12:14] == "ft":
-                        p.boat.turrets.ft = turretValue
-                    elif message[12:14] == "mt":
-                        p.boat.turrets.mt = turretValue
-                    elif message[12:14] == "bt":
-                        p.boat.turrets.bt = turretValue
+            if message[12:14] == "ft":
+                newTurretValue = int(message[15:])
+                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.ft):
+                    p.boat.turrets.ft = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
-                    connection.sendall(bytes("not_enough_points",'utf-8'))
-            elif message[12:15] == "fat" or message[12:15] == "bat":
-                turretValue = int(message[16:])
-                if getAntiTurretPointCost(turretValue) < p.boat.getRemainingPoints():
-                    if message[12:15] == "fat":
-                        p.boat.turrets.fat = turretValue
-                    elif message[12:15] == "bat":
-                        p.boat.turrets.bat = turretValue
+                    sendMessage(connection,"not_enough_points")
+            if message[12:14] == "mt":
+                newTurretValue = int(message[15:])
+                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.mt):
+                    p.boat.turrets.mt = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
-                    connection.sendall(bytes("not_enough_points",'utf-8'))
+                    sendMessage(connection,"not_enough_points")
+            if message[12:14] == "bt":
+                newTurretValue = int(message[15:])
+                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.bt):
+                    p.boat.turrets.bt = newTurretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    sendMessage(connection,"not_enough_points")
+            if message[12:15] == "fat":
+                newTurretValue = int(message[16:])
+                if getAntiTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.fat):
+                    p.boat.turrets.fat = newTurretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    sendMessage(connection,"not_enough_points")
+            if message[12:15] == "bat":
+                newTurretValue = int(message[16:])
+                if getAntiTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.bat):
+                    p.boat.turrets.bat = newTurretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    sendMessage(connection,"not_enough_points")
+            rm = player.boat.getRemainingPoints()
+            availableNormalPoints = 0
+            availableSpecialPoints = 0
+            if rm < MAX_SPECIAL_POINTS - player.boat.wastedPoints:
+                availableSpecialPoints = rm
+                availableNormalPoints = 0
+            else:
+                availableSpecialPoints = MAX_SPECIAL_POINTS - player.boat.wastedPoints
+                availableNormalPoints = rm - availableSpecialPoints
+            print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
+            sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
 
 
     connectionList.remove(connection)
@@ -235,6 +259,9 @@ def clientThread(connection, ip, port):
     else:
         team2.remove(player)
     print("Terminanting thread of client " + player.name + " (" + ip + ":" + str(port) + ")")
+
+def sendMessage(connection,message):
+    connection.sendall(bytes(message + "|",'utf-8'))
 
 def broadcast(t):
     broadcastQueue.put(t+"|")
@@ -263,8 +290,6 @@ def checkAllPlayersReady():
             broadcast("teams_unbalanced")
             return False
         return True
-            
-
 
 
 if __name__ == '__main__':
