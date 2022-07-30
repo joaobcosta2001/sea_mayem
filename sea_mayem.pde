@@ -98,15 +98,16 @@ void draw(){
     progressbar_building_defence_points.visible = true;
     progressbar_building_navigation_points.visible = true;
     progressbar_building_engine_points.visible = true;
-    scrolllist_buiding_team_list.visible = true;
+    scrolllist_building_team_list.visible = true;
     scrolllist_building_part_select.visible = true;
     textbox_building_boat_name.visible = true;
     button_building_steal_intel.visible = true;
     button_building_ready.visible = true;
     currentScreen = "building_screen";
+    println("Addding players to team view");
     for(int i = 0; i < playerList.size();i++){
       if(playerList.get(i).team == thisPlayer.team){
-        scrolllist_buiding_team_list.add(playerList.get(i).name);
+        scrolllist_building_team_list.add(playerList.get(i).name);
       }
     }
   }else if(currentScreen == "building_screen"){
@@ -127,11 +128,34 @@ void draw(){
     if(button_building_steal_intel.clicked){
       sendServerRequest("steal_intel");
     }
+    if(button_building_ready.clicked){
+      sendServerRequest("ready");
+    }
+  }else if (currentScreen == "game_loading_screen"){
+    progressbar_bulding_total_normal_points.visible = false;
+    progressbar_bulding_total_special_points.visible = false;
+    progressbar_building_guns_points.visible = false;
+    progressbar_building_defence_points.visible = false;
+    progressbar_building_navigation_points.visible = false;
+    progressbar_building_engine_points.visible = false;
+    scrolllist_building_team_list.visible = false;
+    scrolllist_building_part_select.visible = false;
+    textbox_building_boat_name.visible = false;
+    button_building_steal_intel.visible = false;
+    button_building_ready.visible = false;
+    background(0);
+    textFont(font_karma_future_100);
+    fill(255);
+    textAlign(CENTER);
+    text("Carregando jogo...",width/2, height/2+50-textDescent());
   }
+
   handleConnectivity();
   processUILib();
   if(currentScreen == "team_select" && thisPlayer.ready){
     drawGreenTick(width * 10.5/16,height*8.25/9,width*.5*16/15000);
+  }else if(currentScreen == "building_screen" && thisPlayer.ready){
+    drawGreenTick(width*15/16.0,height*8/9.0,width*.5*16/15000);
   }
   renderRadioMessageBalloons();
 }
@@ -160,7 +184,7 @@ void loadUIElements(){
   progressbar_building_defence_points = new UIProgressBar(width * 1.5/16, height * 3.0 / 9, width * 2.25/16, height * 0.25/9);
   progressbar_building_navigation_points = new UIProgressBar(width * 1.5/16, height * 3.75 / 9, width * 2.25/16, height * 0.25/9);
   progressbar_building_engine_points = new UIProgressBar(width * 1.5/16, height * 4.5 / 9, width * 2.25/16, height * 0.25/9);
-  scrolllist_buiding_team_list = new UIScrollList(width/16.0,height*5.5/9,width*3.5/16,height*2.5/9);
+  scrolllist_building_team_list = new UIScrollList(width/16.0,height*5.5/9,width*3.5/16,height*2.5/9);
   scrolllist_building_part_select = new UIScrollList(width*11.5/16.0,height*1/9.0,width*3.5/16,height*3.0/9);
   textbox_building_boat_name = new UITextBox(width*6.0/16,height*0.5/9,width*4.0/16,height*0.75/9,"Nau Sao Gabriel");
   button_building_steal_intel = new UIButton(width*11.5/16,height*6.0/9,width*3.5/16,height*0.75/9,"Espiar");
@@ -229,7 +253,7 @@ void drawTeamSelectMenu(){
 
 
 UIProgressBar progressbar_bulding_total_normal_points,progressbar_bulding_total_special_points,progressbar_building_guns_points,progressbar_building_defence_points,progressbar_building_navigation_points,progressbar_building_engine_points;
-UIScrollList scrolllist_buiding_team_list, scrolllist_building_part_select;
+UIScrollList scrolllist_building_team_list, scrolllist_building_part_select;
 UITextBox textbox_building_boat_name;
 UIButton button_building_steal_intel, button_building_ready;
 

@@ -174,6 +174,12 @@ void handleConnectivity(){
           }
         }
       }
+      if (m.length() >= 19){
+        if (m.equals("game_loading_screen")){
+          println("Going into game loading screen");
+          currentScreen = "game_loading_screen";
+        }
+      }
     }
   }
 }

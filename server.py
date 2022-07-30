@@ -1,4 +1,5 @@
 from multiprocessing import connection
+from multiprocessing.dummy import current_process
 import socket
 from threading import Thread
 from queue import Queue
@@ -9,7 +10,7 @@ minPlayerNumber = 6
 teamBalancing = True
 HOST = "127.0.0.1"
 PORT = 4500
-
+currentStage = "lobby"
 team1 = []
 team2 = []
 playerList = []
@@ -157,6 +158,7 @@ def main():
     s.close()
 
 def clientThread(connection, ip, port):
+    global currentStage
     player = Player(ip,port)
 
     while True:
@@ -194,12 +196,19 @@ def clientThread(connection, ip, port):
         if (message == "ready"):
             getPlayerByName(user).ready = True
             if checkAllPlayersReady():
-                print("All players are ready, going to building screen")
-                broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
-                broadcast("building_screen")
-                broadcast(formatBoatsInfo())
-                #for player in playerList:
-                #    player.ready = False
+                if currentStage == "lobby":
+                    print("All players are ready, going building screen")
+                    broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
+                    broadcast("building_screen")
+                    broadcast(formatBoatsInfo())
+                    #for player in playerList:
+                    #    player.ready = False
+                    getPlayerByName("Bob").ready = False
+                    currentStage = "building"
+                elif currentStage == "building":
+                    print("All player are ready, starting game")
+                    broadcast("game_loading_screen")
+                    currentStage ="loading"
             else:
                 broadcast(formatTeamInfo())
 
