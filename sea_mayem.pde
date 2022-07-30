@@ -125,7 +125,7 @@ void draw(){
       }
     }
     if(button_building_steal_intel.clicked){
-      new RadioMessageBalloon("ola meus amigos, isto sou eu a tentar roubar informacao aos nossos amigos meu deus do ceu",width, height-100,2000);
+      sendServerRequest("steal_intel");
     }
   }
   handleConnectivity();

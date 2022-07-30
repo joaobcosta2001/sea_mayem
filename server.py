@@ -3,6 +3,7 @@ import socket
 from threading import Thread
 from queue import Queue
 import sys
+from random import random
 
 minPlayerNumber = 6
 teamBalancing = True
@@ -32,6 +33,10 @@ class Player:
 
 MAX_NORMAL_POINTS = 55
 MAX_SPECIAL_POINTS = 30
+MAX_ATTACK_POINTS = 45
+MAX_DEFENSE_POINTS = 30
+MAX_NAVIGATION_POINTS = 15
+MAX_ENGINE_POINTS = 15
 
 def getTurretPointCost(p):
     if p == -1:
@@ -250,7 +255,24 @@ def clientThread(connection, ip, port):
                 availableNormalPoints = rm - availableSpecialPoints
             print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
             sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
-
+        if message == "steal_intel":
+            if player.boat.wastedPoints < MAX_SPECIAL_POINTS:
+                player.boat.wastedPoints += 5
+                if player.team == 1:
+                    sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(2))
+                elif player.team == 2:
+                    sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(1))
+                rm = player.boat.getRemainingPoints()
+                availableNormalPoints = 0
+                availableSpecialPoints = 0
+                if rm < MAX_SPECIAL_POINTS - player.boat.wastedPoints:
+                    availableSpecialPoints = rm
+                    availableNormalPoints = 0
+                else:
+                    availableSpecialPoints = MAX_SPECIAL_POINTS - player.boat.wastedPoints
+                    availableNormalPoints = rm - availableSpecialPoints
+                print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
+                sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
 
     connectionList.remove(connection)
     playerList.remove(player)
@@ -259,6 +281,7 @@ def clientThread(connection, ip, port):
     else:
         team2.remove(player)
     print("Terminanting thread of client " + player.name + " (" + ip + ":" + str(port) + ")")
+
 
 def sendMessage(connection,message):
     connection.sendall(bytes(message + "|",'utf-8'))
@@ -290,6 +313,78 @@ def checkAllPlayersReady():
             broadcast("teams_unbalanced")
             return False
         return True
+
+def getTeamSecretInfo(team):
+    attackPoints = 0
+    defensePoints = 0
+    navigationPoints = 0
+    enginePoints = 0
+    r = random()
+    if r > 0.8:
+        return "no_intel"
+    elif r > 0.7:
+        r = random()
+        if r<0.25:
+            return "strong_attack"
+        elif r<0.5:
+            return "strong_defense"
+        elif r<0.75:
+            return "strong_navigation"
+        else:
+            return "strong_engine"
+    elif team == 1:
+        for player in team1:
+            attackPoints += getTurretPointCost(player.boat.turrets.ft) + getTurretPointCost(player.boat.turrets.mt) + getTurretPointCost(player.boat.turrets.bt)
+            defensePoints += getAntiTurretPointCost(player.boat.turret.fat) + getAntiTurretPointCost(player.boat.turret.bat)
+        p = [attackPoints/(len(team1)*MAX_ATTACK_POINTS),defensePoints/(len(team1)*MAX_DEFENSE_POINTS),navigationPoints/(len(team1)*MAX_NAVIGATION_POINTS),enginePoints/(len(team1)*MAX_ENGINE_POINTS)]
+        if p[0] == p[1] and p[1] == p[2] and p[2] == p[3]:
+            r = random()
+            if r<0.25:
+                return "strong_attack"
+            elif r<0.5:
+                return "strong_defense"
+            elif r<0.75:
+                return "strong_navigation"
+            else:
+                return "strong_engine"
+        m = max(p)
+        if p.index(m) == 0:
+            return "strong_attack"
+        elif p.index(m) == 1:
+            return "strong_defense"
+        elif p.index(m) == 2:
+            return "strong_navigation"
+        elif p.index(m) == 3:
+            return "strong_engine"
+    elif team == 2:
+        for player in team2:
+            attackPoints += getTurretPointCost(player.boat.turrets.ft) + getTurretPointCost(player.boat.turrets.mt) + getTurretPointCost(player.boat.turrets.bt)
+            defensePoints += getAntiTurretPointCost(player.boat.turrets.fat) + getAntiTurretPointCost(player.boat.turrets.bat)
+        p = [attackPoints/(len(team2)*MAX_ATTACK_POINTS),defensePoints/(len(team2)*MAX_DEFENSE_POINTS),navigationPoints/(len(team2)*MAX_NAVIGATION_POINTS),enginePoints/(len(team2)*MAX_ENGINE_POINTS)]
+        if p[0] == p[1] and p[1] == p[2] and p[2] == p[3]:
+            r = random()
+            if r<0.25:
+                return "strong_attack"
+            elif r<0.5:
+                return "strong_defense"
+            elif r<0.75:
+                return "strong_navigation"
+            else:
+                return "strong_engine"
+        m = max(p)
+        if p.index(m) == 0:
+            return "strong_attack"
+        elif p.index(m) == 1:
+            return "strong_defense"
+        elif p.index(m) == 2:
+            return "strong_navigation"
+        elif p.index(m) == 3:
+            return "strong_engine"
+    else:
+        print("ERROR invalid team given to getTeamSecretInfo()")
+
+
+
 
 
 if __name__ == '__main__':

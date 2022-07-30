@@ -131,6 +131,49 @@ void handleConnectivity(){
           println("Received points info: " + str(np) + "np + " + str(sp) + "sp");
         }
       }
+      if(m.length() >= 13){
+        if(m.substring(0,13).equals("stolen_intel:")){
+          print("Received stolen intel: " + m.substring(13,m.length()));
+          if(m.substring(13,m.length()).equals("strong_attack")){
+            float r = random(1);
+            if (r < 0.5){
+              new RadioMessageBalloon("O inimigo esta a prepara armas de grande calibre, cuidado!",width, height-100, 4000);
+            }else{
+              new RadioMessageBalloon("Vejo artilharia pesada a ser montada nos navios adversarios!", width, height-100,4000);
+            }
+          }else if(m.substring(13,m.length()).equals("strong_defense")){
+            float r = random(1);
+            if (r < 0.5){
+              new RadioMessageBalloon("O inimgo gastou bastante dinheiro em tecnologia defensiva de ponta!",width, height-100, 4000);
+            }else{
+              new RadioMessageBalloon("Vejo potentes torres de defesa a serem instaladas nos navios inimigos!", width, height-100,4000);
+            }
+          }else if(m.substring(13,m.length()).equals("strong_navigation")){
+            float r = random(1);
+            if (r < 0.5){
+              new RadioMessageBalloon("Nunca vi antenas tao sofisticadas como nos navios adversarios!",width, height-100, 4000);
+            }else{
+              new RadioMessageBalloon("Os radares instaldos nas torres de alguns navios inimigos sao preocupantes!", width, height-100,4000);
+            }
+          }else if(m.substring(13,m.length()).equals("strong_engine")){
+            float r = random(1);
+            if (r < 0.5){
+              new RadioMessageBalloon("O barulho dos motores inimigos e ensurdecedor, devem ser de alta potencia!",width, height-100, 4000);
+            }else{
+              new RadioMessageBalloon("Vejo motores enorme a serem instalados na retaguarda de alguns navios, cuidado!", width, height-100,4000);
+            }
+          }else if(m.substring(13,m.length()).equals("no_intel")){
+            float r = random(1);
+            if (r < 0.33){
+              new RadioMessageBalloon("O inimigo esta a esconder os barcos! Nao consigo avistar informacao relevante...",width, height-100, 4000);
+            }else if(r < 0.66){
+              new RadioMessageBalloon("Os meus binicolos nao funcionam! Que raio de instrumentos que a marinha nos da...", width, height-100,4000);
+            }else{
+              new RadioMessageBalloon("Os meus instrumentos de espionagem apanharam agua! Nao consigo ver nada!", width, height-100,4000);
+            }
+          }
+        }
+      }
     }
   }
 }

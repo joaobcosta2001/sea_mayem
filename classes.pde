@@ -71,10 +71,6 @@ class RadioMessageBalloon{
     this.maxTime = t;
     this.transitionTime = 500; //time in milliseconds of the transitions
     this.startTime = millis();
-    //DEBUG
-    for(int i = 0; i < truncatedMessage.size();i++){
-      println("Line " + str(i) + ": " + truncatedMessage.get(i));
-    }
   }
 
   //recalculates balloon dimensions and truncates the text acordingly
@@ -85,7 +81,6 @@ class RadioMessageBalloon{
     String t = this.message,m = truncateWordsToWidth(t,this.maxWidth-2*this.margin);
     this.truncatedMessage.add(String.copyValueOf(m.toCharArray()));
     while(!m.equals(t)){
-      println("M = |" + m + "|   T = |" + t + "|");
       t = t.substring(m.length(),t.length());
       if (t.charAt(0) == ' '){
         t = t.substring(1,t.length());
@@ -99,7 +94,6 @@ class RadioMessageBalloon{
   void render(){
     //Check if animation is completes, if so delete balloon
     if (millis() > this.startTime + this.maxTime){
-      println("Destroying radio message balloon");
       for (int i = 0; i < radioMessageBalloonList.size(); i++){
         if (radioMessageBalloonList.get(i) == this){
           radioMessageBalloonList.remove(i);
