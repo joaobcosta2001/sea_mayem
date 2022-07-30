@@ -124,12 +124,16 @@ void draw(){
         sendServerRequest("change_part:bt:" + str(scrolllist_building_part_select.selectedIndex));
       }
     }
+    if(button_building_steal_intel.clicked){
+      new RadioMessageBalloon("ola meus amigos, isto sou eu a tentar roubar informacao aos nossos amigos meu deus do ceu",width, height-100,2000);
+    }
   }
   handleConnectivity();
   processUILib();
   if(currentScreen == "team_select" && thisPlayer.ready){
     drawGreenTick(width * 10.5/16,height*8.25/9,width*.5*16/15000);
   }
+  renderRadioMessageBalloons();
 }
 
 
@@ -495,4 +499,11 @@ PVector getScrollListIconDrawingPosition(int index, UIScrollList l){
     return null;
   }
   return new PVector(l.position.x+l.margin+textWidth(l.elements.get(index))+l.fontSize, l.position.y + l.margin + l.fontSize*(0.5+2*index-l.getIndexOffset())+textDescent());
+}
+
+
+void renderRadioMessageBalloons(){
+  for(int i =0; i < radioMessageBalloonList.size();i++){
+    radioMessageBalloonList.get(i).render();
+  }
 }

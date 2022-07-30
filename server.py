@@ -193,8 +193,8 @@ def clientThread(connection, ip, port):
                 broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
                 broadcast("building_screen")
                 broadcast(formatBoatsInfo())
-                for player in playerList:
-                    player.ready = False
+                #for player in playerList:
+                #    player.ready = False
             else:
                 broadcast(formatTeamInfo())
 
