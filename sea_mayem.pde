@@ -22,6 +22,9 @@ void setup(){
 
 
 void draw(){
+  if (textbox_main_screen_ip != null){
+    println(textbox_main_screen_ip.text.length());
+  }
   if (currentScreen == "drawLoadingScreen"){
     drawLoadingScreen();
     currentScreen = "loading";
@@ -29,7 +32,7 @@ void draw(){
     loadImages();
     loadFonts();
     loadUIElements();
-    textbox_main_screen_ip.text = "localhost";
+    //textbox_main_screen_ip.text = "localhost";
     textbox_main_screen_port.text = "4500";
     textbox_main_screen_name.text = "Bob";
     currentScreen = "main";

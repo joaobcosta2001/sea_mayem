@@ -114,7 +114,7 @@ class UITextBox extends UIElement{
       rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
       textSize(this.fontSize);
       textAlign(LEFT);
-      if (this.text == ""){
+      if (this.text.length() == 0){
         fill(this.selectedDummyTextColor);
         text(truncateTextToWidth(this.dummyText,this.dimensions.x - this.margin * 2, UIENDING),this.position.x+this.margin,this.position.y+this.dimensions.y - this.margin - textDescent());
         fill(this.textColor);
@@ -129,7 +129,7 @@ class UITextBox extends UIElement{
       rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
       textSize(this.fontSize);
       textAlign(LEFT);
-      if (this.text == ""){
+      if (this.text.length() == 0){
         fill(this.selectedDummyTextColor);
         text(truncateTextToWidth(this.dummyText,this.dimensions.x - this.margin * 2, UIENDING),this.position.x+this.margin,this.position.y+this.dimensions.y - this.margin - textDescent());
       }else{
