@@ -104,6 +104,23 @@ void handleConnectivity(){
           updateTeamsAndReadyStates(m);
         }
       }
+      if(m.length() >= 11){
+        if (m.substring(0,14).equals("remove_player:")){
+          boolean found = false;
+          for (int i = 0; i < playerList.size(); i++){
+            if (playerList.get(i).name.equals(m.substring(14,m.length()))){
+              found = true;
+              println("Removing player " + m.substring(14,m.length()));
+              playerList.remove(i);
+              updateTeamScrollLists();
+              break;
+            }
+          }
+          if (!found){
+            println("ERROR Player to remove not found!");
+          }
+        }
+      }
       if(m.length() >= 16){
         if (m.substring(0,16).equals("teams_unbalanced")){
           println("Teams are unbalanced!");

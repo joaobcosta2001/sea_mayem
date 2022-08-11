@@ -22,12 +22,14 @@ broadcastQueue = Queue()
 map = []
 
 class Player:
-    def __init__(self,addr,p):
+    def __init__(self,con,addr,p):
         self.name = ""
         self.ready = False
         self.address = addr
         self.port = p
         self.boat = Boat()
+        self.bot = False
+        self.connection = con
         playerList.append(self)
         if len(team1) > len(team2):
             team2.append(self)
@@ -109,14 +111,11 @@ class Turrets:
         self.eng = -1
 
 
-for i in range(26):
-    p = Player("127.0.0.1",6400+i)
+for i in range(1):
+    p = Player(None,"127.0.0.1",6400+i)
     p.name = "Bot_" + str(p.port)
     p.ready = True
-
-
-for i in range(5):
-    playerList[i].ready = True
+    p.bot = True
 
 
 
@@ -152,6 +151,8 @@ def formatTeamInfo():
             messageToSend = messageToSend + "X2"
         messageToSend = messageToSend + ","
     messageToSend = messageToSend[0:-1]
+    #DEBUG
+    print("TEAMS INFO: " + messageToSend)
     return messageToSend
 
 #Returns a string with the turret displays of all boats with syntax:
@@ -195,6 +196,10 @@ def loadMap(filename,mapSize):
 
 def main():
     global map
+    try:
+        Thread(target=consoleThread).start()
+    except:
+        print("Failed to start console thread")
     #map = loadMap("map_1000x1000.txt",1000)
     map = generateMap()
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -222,7 +227,7 @@ def main():
 
 def clientThread(connection, ip, port):
     global currentStage
-    player = Player(ip,port)
+    player = Player(connection,ip,port)
 
     while True:
         try:
@@ -388,6 +393,60 @@ def broadcastThread():
                 if message[0:4] == "map:":
                     print("Sent map data successfully")
 
+def consoleThread():
+    while True:
+        command = input()
+        if command[:7] == "add bot":
+            if currentStage != "lobby":
+                print("ERROR Cannot add bots if not in lobby!")
+                continue
+            n = 1
+            if len(command) > 8:
+                try:
+                    n = int(command[8:])
+                except:
+                    print("Invalid number of bots to be added!")
+            for i in range(n):
+                p = Player(None,"127.0.0.1",6400)
+                c = 1
+                name = "Bot_" + str(c)
+                match = False
+                for p in playerList:
+                    if name == p.name:
+                        match = True
+                        break
+                while match:
+                    c += 1
+                    name = "Bot_" + str(c)
+                    match = False
+                    for p in playerList:
+                        if name == p.name:
+                            match = True
+                            break
+                p.name = name
+                p.ready = True
+                p.bot = True
+            broadcast(formatTeamInfo())
+            print("Successfully added " + str(n) + " bots")
+        #MISSING remove player still doesnt disconnect
+        elif command[:14] == "remove player ":
+            removed = False
+            for p in playerList:
+                if p.name == command[14:]:
+                    playerList.remove(p)
+                    try:
+                        team1.remove(p)
+                    except:
+                        team2.remove(p)
+                    removed = True
+                    print("SUCCESS removed player " + command[14:])
+                    break
+            if removed:
+                broadcast("remove_player:" + command[14:])
+            else:
+                print("ERROR player " + command[14:] + " not found")
+        else:
+            print("ERROR Command unknow!")
 
 def checkAllPlayersReady():
     readyPlayerCount = 0
@@ -519,7 +578,6 @@ def generateGame():
     #dizer a todos para comecar
 
 #def checkForMapGenerationConfirmations():
-
 
 def generateMap():
     noise1 = PerlinNoise(octaves=3)
