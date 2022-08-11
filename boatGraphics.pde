@@ -110,7 +110,6 @@ void drawMissileTurret(float x, float y, float s, float str){
 	popMatrix();
 }
 
-
 void drawTorpedoTurret(float x, float y, float s, float str){
 	pushMatrix();
 	translate(x,y);
@@ -249,7 +248,6 @@ void drawAntiMissileTurret(float x, float y, float s, float str){
 	popMatrix();
 }
 
-
 void drawAntiTorpedoTurret(float x, float y, float s, float str){
 	pushMatrix();
 	translate(x,y);
@@ -265,4 +263,214 @@ void drawAntiTorpedoTurret(float x, float y, float s, float str){
 	rect(12.5,-100,12.5,75);
 	strokeWeight(1);
 	popMatrix();
+}
+
+void drawTier2Antenna(float x, float y, float s, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-200,400,400);
+	rect(-150,50,100,100);
+	line(-150,50,-50,150);
+	line(-150,150,-50,50);
+	circle(-100,100,25);
+	pushMatrix();
+	translate(0,-100);
+	rotate((millis()-animationStartTime) / 300.0);
+	rect(-175,-25,350,50);
+	popMatrix();
+	circle(100,100,20);
+	line(100,10,100,190);
+	line(50,25,150,25);
+	line(50,75,150,75);
+	line(50,125,150,125);
+	line(50,175,150,175);
+	strokeWeight(1);
+	popMatrix();
+}
+
+void drawTier1Antenna(float x, float y, float s, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-200,400,400);
+	//circle(0,0,200);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / 400.0);
+	translate(0,-50);
+	arc(0,50,250,150,0,PI);
+	ellipse(0,50,250,100);
+	line(0,-40,0,20);
+	line(0,-40,-100,60);
+	line(0,-40,100,60);
+	circle(0,-40,20);
+	popMatrix();
+	strokeWeight(1);
+	popMatrix();
+}
+
+void drawTier3Antenna(float x, float y, float s, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-200,400,400);
+	circle(0,0,200);
+	pushMatrix();
+	scale(1.5);
+	rotate((millis()-animationStartTime) / 400.0);
+	beginShape();
+	vertex(-30,60);
+	vertex(-5,-30);
+	vertex(5,-30);
+	vertex(30,60);
+	vertex(20,60);
+	vertex(0,-20);
+	vertex(-20,60);
+	endShape(CLOSE);
+	beginShape();
+	vertex(-200,0);
+	bezierVertex(-150,50,-75,80,0,80);
+	bezierVertex(75,80,150,50,200,0);
+	vertex(200,-10);
+	bezierVertex(150,40,40,40,0,40);
+	bezierVertex(-40,40,-150,40,-200,-10);
+	endShape(CLOSE);
+	rect(-5,-50,10,50);
+	circle(0,0,15);
+	popMatrix();
+	strokeWeight(1);
+	popMatrix();
+}
+
+
+void drawTier1Engine(float x, float y, float s, float sp, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-50,400,100);
+	strokeWeight(str/2.0);
+	rotate((millis()-animationStartTime) / -200.0 * sp);
+	pushMatrix();
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	popMatrix();
+	strokeWeight(1);
+}
+
+
+void drawTier2Engine(float x, float y, float s, float sp, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-50,400,100);
+	strokeWeight(str/2.0);
+	translate(-66,0);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / -200.0*sp);
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	translate(133,0);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / -200.0*sp);
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	popMatrix();
+	strokeWeight(1);
+}
+
+void drawTier3Engine(float x, float y, float s, float sp, float str){
+	pushMatrix();
+	translate(x,y);
+	scale(s);
+	scale(1/400.0);
+	fill(0);
+	stroke(0,255,255);
+	strokeWeight(str);
+	rect(-200,-50,400,100);
+	strokeWeight(str/2.0);
+	translate(-100,0);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / -200.0*sp);
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	translate(100,0);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / -200.0*sp);
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	translate(100,0);
+	pushMatrix();
+	rotate((millis()-animationStartTime) / -200.0*sp);
+	for(int i = 0; i< 4; i++){
+		rotate(PI/2);
+		beginShape();
+		vertex(0,0);
+		bezierVertex(8, -40, 32, -40, 40, 8);
+		bezierVertex(28,-8,12,-8,0,0);
+		endShape(CLOSE);
+	}
+	popMatrix();
+	circle(0,0,20);
+	popMatrix();
+	strokeWeight(1);
 }

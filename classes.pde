@@ -1,15 +1,17 @@
 class Boat{
   PVector position;
   float angle;
-  int ft,mt,bt,fat,bat;
+  int ft,mt,bt,fat,bat,nav,eng;
   Boat(){
-    this.position = new PVector(0,0);
-    this.angle = 0;
-    this.ft = -1;
-    this.mt = -1;
-    this.bt = -1;
-    this.fat = -1;
-    this.bat = -1;
+    this.position = new PVector(0,0); //position of the boat in the map
+    this.angle = 0;  //angle of the boat
+    this.ft = -1;  //type of front turret
+    this.mt = -1;  //type of middle turret
+    this.bt = -1;  //type of back turret
+    this.fat = -1;  //type of front anti turret
+    this.bat = -1;  //type of back anti turret
+    this.nav = -1;  //type of navigation system
+    this.eng = -1;  //type of engine
   }
   void drawIcon(){
     pushMatrix();

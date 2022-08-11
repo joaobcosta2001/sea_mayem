@@ -44,6 +44,8 @@ void handleSendServerRequestFailure(){
 }
 
 
+String longMessage = "";
+int longMessageCount = 0;
 
 void handleConnectivity(){
   //If connection is not established ignore
@@ -57,6 +59,7 @@ void handleConnectivity(){
   }catch(IOException e){
     ;
   }
+  //If there are, read
   if (availableBytes > 0){
     byte[] bm = new byte[1000];
     //Reads the bytes
@@ -66,14 +69,35 @@ void handleConnectivity(){
       ;
     }
     String m = new String(bm);
-    //Checks if received string has teams info
+    if (m.indexOf("|") == -1){
+      if (longMessageCount == 0){
+        println("Receiving long message");
+      }
+      longMessage+= m;
+      longMessageCount++;
+      return;
+    }
     StringTokenizer st = new StringTokenizer(m,"|");
     while(st.hasMoreTokens()){
       m = st.nextToken();
       if (m.charAt(0) == '\0'){
         continue;
       }
-      //println("Received message: |" + m + "|");
+      if (!longMessage.equals("")){
+        m = longMessage + m;
+        for(int i = 0; i < m.length(); i++){
+          if (m.charAt(i) == '\0'){
+            println("Found null character!");
+            m = m.substring(0,i) + m.substring(i+1,m.length());
+          }
+        }
+        longMessage = "";
+        println("Received long message with " + str(longMessageCount) + " fragments");
+        longMessageCount = 0;
+      }else{
+        //println("Received message: |" + m + "|");
+        ;
+      }
       if(m.length() >= 11){
         if (m.substring(0,11).equals("teams_info:")){
           println("Received teams info");
@@ -180,6 +204,28 @@ void handleConnectivity(){
           currentScreen = "game_loading_screen";
         }
       }
+      if (m.length() >= 4){
+        if (m.substring(0,4).equals("map:")){
+          println("Saving map");
+          map = createImage(mapSize*100,mapSize*100,RGB);
+          map.loadPixels();
+          int count = 0;
+          for (int i = 0; i < mapSize * 100; i++){
+            for (int j = 0; j < mapSize * 100; j++){
+              String s = m.substring(4+(i*mapSize*100+j)*2,4+(i*mapSize*100+j)*2+2);
+              int c = int(s);
+              if (c == -1){
+                map.pixels[i*mapSize*100+j] = color(0);
+              }else{
+                map.pixels[i*mapSize*100+j] = color(int(255*(1-c/100.0)),255,255);
+              }
+            }
+          }
+          map.updatePixels();
+          println("Map saved!");
+          sendServerRequest("map_received");
+        }
+      }
     }
   }
 }
@@ -249,8 +295,14 @@ void updateBoats(String m){ //updates boats' displays
     i = m.indexOf(",",lastIndex);
     p.boat.fat = int(m.substring(lastIndex,i));
     lastIndex = i+1;
-    i = m.indexOf(";",lastIndex);
+    i = m.indexOf(",",lastIndex);
     p.boat.bat = int(m.substring(lastIndex,i));
+    lastIndex = i+1;
+    i = m.indexOf(",",lastIndex);
+    p.boat.nav = int(m.substring(lastIndex,i));
+    lastIndex = i+1;
+    i = m.indexOf(";",lastIndex);
+    p.boat.eng = int(m.substring(lastIndex,i));
     lastIndex = i+1;
   }
 }

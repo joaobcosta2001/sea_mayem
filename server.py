@@ -5,7 +5,10 @@ from threading import Thread
 from queue import Queue
 import sys
 from random import random
+from turtle import position
+from perlin_noise import PerlinNoise
 
+mapSize = 1 #map size in km
 minPlayerNumber = 6
 teamBalancing = True
 HOST = "127.0.0.1"
@@ -16,6 +19,7 @@ team2 = []
 playerList = []
 connectionList = []
 broadcastQueue = Queue()
+map = []
 
 class Player:
     def __init__(self,addr,p):
@@ -61,12 +65,36 @@ def getAntiTurretPointCost(p):
         return 5
     print("ERROR finding point cost of anti turret of type "+ str(p))
 
+def getNavigationPointCost(p):
+    if p == -1:
+        return 0
+    if p == 0:
+        return 5
+    if p == 1:
+        return 10
+    if p == 2:
+        return 15
+    print("ERROR finding point cost of anti turret of type "+ str(p))
+
+def getEnginePointCost(p):
+    if p == -1:
+        return 0
+    if p == 0:
+        return 5
+    if p == 1:
+        return 10
+    if p == 2:
+        return 15
+    print("ERROR finding point cost of anti turret of type "+ str(p))
+
 class Boat:
     def __init__(self):
         self.wastedPoints = 0
         self.turrets = Turrets()
+        self.position = (0,0)
+        self.rotation = 0
     def getRemainingPoints(self):
-        return MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS - self.wastedPoints - getTurretPointCost(self.turrets.ft) - getTurretPointCost(self.turrets.mt) - getTurretPointCost(self.turrets.bt) - getAntiTurretPointCost(self.turrets.fat) - getAntiTurretPointCost(self.turrets.bat)
+        return MAX_NORMAL_POINTS + MAX_SPECIAL_POINTS - self.wastedPoints - getTurretPointCost(self.turrets.ft) - getTurretPointCost(self.turrets.mt) - getTurretPointCost(self.turrets.bt) - getAntiTurretPointCost(self.turrets.fat) - getAntiTurretPointCost(self.turrets.bat) - getNavigationPointCost(self.turrets.nav) - getEnginePointCost(self.turrets.eng)
         
 
 
@@ -77,6 +105,8 @@ class Turrets:
         self.ft = -1
         self.bt = -1
         self.mt = -1
+        self.nav = -1
+        self.eng = -1
 
 
 for i in range(26):
@@ -130,10 +160,43 @@ def formatBoatsInfo():
     print("Sending boats info")
     m = "boats_info:"
     for player in playerList:
-        m = m + player.name + ":" + str(player.boat.turrets.ft) + "," + str(player.boat.turrets.mt) + "," + str(player.boat.turrets.bt) + "," + str(player.boat.turrets.fat) + "," + str(player.boat.turrets.bat) + ";"
+        m = m + player.name + ":" + str(player.boat.turrets.ft) + "," + str(player.boat.turrets.mt) + "," + str(player.boat.turrets.bt) + "," + str(player.boat.turrets.fat) + "," + str(player.boat.turrets.bat) + "," + str(player.boat.turrets.nav) + "," + str(player.boat.turrets.eng)+ ";"
     return m
 
+
+def saveMap(location,m):
+    print("Saving map to " + location)
+    f = open(location + "map_" + str(len(m)) + "x" + str(len(m[0])) + ".txt","w")
+    for i in range(len(m)):
+        for j in range(len(m[0])):
+            if m[i][j] < 10 and m[i][j]>=0:
+                f.write("0"+ str(m[i][j]))
+            else:
+                f.write(str(m[i][j]))
+    f.close()
+    print("Map saved successfully")
+
+def loadMap(filename,mapSize):
+    map = []
+    print("Loading map from: " + filename)
+    f = open(filename, "r")
+    for i in range(mapSize):
+        row = []
+        for j in range(mapSize):
+            try:
+                n = int(f.read(2))
+                row.append(n)
+            except:
+                print("Value error!!!")
+        map.append(row)
+    print("Map loaded successfully")
+    return map
+            
+
 def main():
+    global map
+    #map = loadMap("map_1000x1000.txt",1000)
+    map = generateMap()
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     print("Server socket created")
     try:
@@ -209,6 +272,7 @@ def clientThread(connection, ip, port):
                     print("All player are ready, starting game")
                     broadcast("game_loading_screen")
                     currentStage ="loading"
+                    generateGame()
             else:
                 broadcast(formatTeamInfo())
 
@@ -220,36 +284,50 @@ def clientThread(connection, ip, port):
             p = getPlayerByName(user)
             if message[12:14] == "ft":
                 newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.ft):
+                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.ft):
                     p.boat.turrets.ft = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
                     sendMessage(connection,"not_enough_points")
             if message[12:14] == "mt":
                 newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.mt):
+                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.mt):
                     p.boat.turrets.mt = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
                     sendMessage(connection,"not_enough_points")
             if message[12:14] == "bt":
                 newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.bt):
+                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.bt):
                     p.boat.turrets.bt = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
                     sendMessage(connection,"not_enough_points")
             if message[12:15] == "fat":
                 newTurretValue = int(message[16:])
-                if getAntiTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.fat):
+                if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.fat):
                     p.boat.turrets.fat = newTurretValue
                     broadcast(formatBoatsInfo())
                 else:
                     sendMessage(connection,"not_enough_points")
             if message[12:15] == "bat":
                 newTurretValue = int(message[16:])
-                if getAntiTurretPointCost(newTurretValue) < p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.bat):
+                if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.bat):
                     p.boat.turrets.bat = newTurretValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    sendMessage(connection,"not_enough_points")
+            if message[12:15] == "nav":
+                newNavValue = int(message[16:])
+                if getNavigationPointCost(newNavValue) <= p.boat.getRemainingPoints() + getNavigationPointCost(player.boat.turrets.nav):
+                    p.boat.turrets.nav = newNavValue
+                    broadcast(formatBoatsInfo())
+                else:
+                    sendMessage(connection,"not_enough_points")
+            if message[12:15] == "eng":
+                newEngineValue = int(message[16:])
+                if getEnginePointCost(newEngineValue) <= p.boat.getRemainingPoints() + getEnginePointCost(player.boat.turrets.eng):
+                    p.boat.turrets.eng = newEngineValue
                     broadcast(formatBoatsInfo())
                 else:
                     sendMessage(connection,"not_enough_points")
@@ -265,7 +343,7 @@ def clientThread(connection, ip, port):
             print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
             sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
         if message == "steal_intel":
-            if player.boat.wastedPoints < MAX_SPECIAL_POINTS:
+            if player.boat.wastedPoints < MAX_SPECIAL_POINTS and p.boat.getRemainingPoints() >= 5:
                 player.boat.wastedPoints += 5
                 if player.team == 1:
                     sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(2))
@@ -304,7 +382,11 @@ def broadcastThread():
         if not broadcastQueue.empty():
             message = broadcastQueue.get()
             for c in connectionList:
+                if message[0:4] == "map:":
+                    print("Sending map to connection")
                 c.sendall(bytes(message,'utf-8'))
+                if message[0:4] == "map:":
+                    print("Sent map data successfully")
 
 
 def checkAllPlayersReady():
@@ -392,9 +474,80 @@ def getTeamSecretInfo(team):
     else:
         print("ERROR invalid team given to getTeamSecretInfo()")
 
+def generateGame():
+    print("Generating game")
+    global map
+    #send map to players
+    print("Preparing map information message")
+    m = "map:"
+    for i in range(len(map)):
+        for j in range(len(map[0])):
+            if map[j][i] >= 0 and map[j][i] <= 9:
+                m = m + "0" + str(map[j][i])
+            else:
+                m = m + str(map[j][i])
+    broadcast(m)
+    #colocar navios em lados distintos do mapa
+    for player in team1:
+        player.boat.position = (50+100*random(),450+100*random())
+        positionOK = False
+        while not positionOK:
+            aux = False
+            for player2 in playerList:
+                if abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
+                    player.boat.position = (50+100*random(),450+100*random())
+                    aux = True
+                    break
+            if aux == False:
+                positionOK = True
+        player.boat.rotation = 0
+    for player in team2:
+        player.boat.position = (850+100*random(),450+100*random())
+        positionOK = False
+        while not positionOK:
+            aux = False
+            for player2 in playerList:
+                if abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
+                    player.boat.position = (850+100*random(),450+100*random())
+                    aux = True
+                    break
+            if aux == False:
+                positionOK = True
+        player.boat.rotation = 180
+    #garantir que navios nao estao demasiado perto da costa
+    #esperar pela confirmacao de mapa criado
+    #dizer a todos para comecar
+
+#def checkForMapGenerationConfirmations():
 
 
-
+def generateMap():
+    noise1 = PerlinNoise(octaves=3)
+    noise2 = PerlinNoise(octaves=6)
+    noise3 = PerlinNoise(octaves=12)
+    noise4 = PerlinNoise(octaves=24)
+    xpix, ypix = int(mapSize*100), int(mapSize*100)
+    pic = []
+    threshold = 0.3
+    print("Generating map")
+    for i in range(xpix):
+        row = []
+        for j in range(ypix):
+            noise_val = noise1([i/xpix*1.2, j/ypix*1.2])
+            noise_val += 0.5 * noise2([i/xpix, j/ypix])
+            noise_val += 0.25 * noise3([i/xpix, j/ypix])
+            noise_val += 0.125 * noise4([i/xpix, j/ypix])
+            if noise_val < threshold:
+                noise_val = int(-1)
+            else:
+                noise_val = int((noise_val-threshold)/(1-threshold)*100)
+            row.append(noise_val)
+        pic.append(row)
+        if i%100==0:
+            print(str(i/xpix*100) + "%")
+    return pic
 
 if __name__ == '__main__':
     main()
+
+

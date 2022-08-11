@@ -1,9 +1,11 @@
 import java.net.*;
 
-int mapSize = 9; //Size in km
+int mapSize = 1; //Size in km
+PImage map = null;
 String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
 String playerName = "name"; //variable to hold the name of the client
 Player thisPlayer = null;
+long animationStartTime = 0;
 
 
 ArrayList<Player> playerList = new ArrayList<Player>();
@@ -15,6 +17,7 @@ void setup(){
   initializeInputLib();
   initializeUILib();
   font_default = font_karma_suture_100;
+  animationStartTime = millis();
 }
 
 
@@ -123,6 +126,10 @@ void draw(){
         sendServerRequest("change_part:mt:" + str(scrolllist_building_part_select.selectedIndex));
       }else if (selectedBuildingMenuPart == "Torre Traseira"){
         sendServerRequest("change_part:bt:" + str(scrolllist_building_part_select.selectedIndex));
+      }else if (selectedBuildingMenuPart == "Sistema de Navegacao"){
+        sendServerRequest("change_part:nav:" + str(scrolllist_building_part_select.selectedIndex));
+      }else if (selectedBuildingMenuPart == "Motores"){
+        sendServerRequest("change_part:eng:" + str(scrolllist_building_part_select.selectedIndex));
       }
     }
     if(button_building_steal_intel.clicked){
@@ -158,8 +165,26 @@ void draw(){
     drawGreenTick(width*15/16.0,height*8/9.0,width*.5*16/15000);
   }
   renderRadioMessageBalloons();
+  //DEBUG
+  if (map != null){
+    if (!image_saved){
+      image_saved = true;
+      map.save("map.png");
+    }
+    pushMatrix();
+    scale(10);
+    image(map,0,0);
+    popMatrix();
+    /*
+    map.loadPixels();
+    println("Random sampling");
+    for(int i = 0; i < 10; i++){
+      int x = int(random(mapSize*mapSize*10000));
+      println("Sample " + str(i+1) + " at " + str(x) + ": " + str(red(map.pixels[x])) + "," + str(green(map.pixels[x])) + "," + str(blue(map.pixels[x])));
+    }*/
+  }
 }
-
+boolean image_saved = false;
 
 
 void preprocess(){
@@ -224,8 +249,8 @@ void drawMainScreen(){
   textAlign(CENTER);
   fill(0,255,255);
   textFont(font_karma_future_100);
-  textSize(100);
-  text("Batalha Naval", width/2,height/4+50- textDescent());
+  textSize(150);
+  text("Sea Mayem", width/2,height/4+150- textDescent());
   textFont(font_karma_suture_100);
   textSize(40);
   fill(255);
@@ -313,6 +338,20 @@ void checkBuildingMenuSelections(){
     scrolllist_building_part_select.add("Lanca-misseis (+15p)");
     scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
+  }else if (mouseX>width/2.0 - (height*5.5/9*800)*25 && mouseX<width/2.0 + (height*5.5/9*800)*25 && mouseY > height*2/9.0 + height*5.5/(9*800)*450 && mouseY < height*2/9.0 + height*5.5/(9*800)*500){
+    selectedBuildingMenuPart = "Sistema de Navegacao";
+    scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Parabolica (+5p)");
+    scrolllist_building_part_select.add("Antenas (+10p)");
+    scrolllist_building_part_select.add("Radar (+15p)");
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.nav;
+  }else if (mouseX>width/2.0 - (height*5.5/9*800)*50 && mouseX<width/2.0 + (height*5.5/9*800)*50 && mouseY > height*2/9.0 + height*5.5/(9*800)*775 && mouseY < height*2/9.0 + height*5.5/(9*800)*800){
+    selectedBuildingMenuPart = "Motores";
+    scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Uma turbina (+5p)");
+    scrolllist_building_part_select.add("Duas turbinas (+10p)");
+    scrolllist_building_part_select.add("Tres turbinas (+15p)");
+    scrolllist_building_part_select.selectedIndex = thisPlayer.boat.eng;
   }else if(mouseX > width*5/16.0 && mouseX < width*11/16.0 && mouseY > height*1.5/9.0 && mouseY < height*8/9.0){
     selectedBuildingMenuPart = "";
     scrolllist_building_part_select.removeAll();
@@ -333,8 +372,8 @@ void updatePointBars(){
   }
   progressbar_building_guns_points.progress = (getTurretPoints(thisPlayer.boat.ft) + getTurretPoints(thisPlayer.boat.mt) + getTurretPoints(thisPlayer.boat.bt)) / float(MAX_ATTACK_POINTS);
   progressbar_building_defence_points.progress = (getAntiTurretPoints(thisPlayer.boat.fat) + getAntiTurretPoints(thisPlayer.boat.bat))/float(MAX_DEFENSE_POINTS);
-  progressbar_building_navigation_points.progress = 0;
-  progressbar_building_engine_points.progress = 0;
+  progressbar_building_navigation_points.progress = getNavigationPoints(thisPlayer.boat.nav) / float(MAX_NAVIGATION_POINTS);
+  progressbar_building_engine_points.progress = getEnginePoints(thisPlayer.boat.eng) / float(MAX_ENGINE_POINTS);
 }
 
 int getTurretPoints(int t){
@@ -365,7 +404,33 @@ int getAntiTurretPoints(int t){
   return 0;
 }
 
+int getNavigationPoints(int t){
+  if (t == -1){
+    return 0;
+  }else if(t == 0){
+    return 5;
+  }else if(t == 1){
+    return 10;
+  }else if(t == 2){
+    return 15;
+  }
+  print("ERROR invalid argument to getNavigationPoints()");
+  return 0;
+}
 
+int getEnginePoints(int t){
+  if (t == -1){
+    return 0;
+  }else if(t == 0){
+    return 5;
+  }else if(t == 1){
+    return 10;
+  }else if(t == 2){
+    return 15;
+  }
+  print("ERROR invalid argument to getEnginePoints()");
+  return 0;
+}
 
 
 void mousePressed(){
@@ -496,6 +561,32 @@ void drawBoatDisplay(){
   popMatrix();
   mouseCoords.y -= 300*nDim;
 
+  pushMatrix();
+  translate(0,75*nDim); //Go to navigations systems position
+  if(thisPlayer.boat.nav == -1){
+    rect(-25*nDim,-25*nDim,50*nDim,50*nDim);
+  }else if(thisPlayer.boat.nav == 0){
+    drawTier1Antenna(0,0,100*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.nav == 1){
+    drawTier2Antenna(0,0,100*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.nav == 2){
+    drawTier3Antenna(0,0,100*nDim/2.0,inlineStroke);
+  }
+  popMatrix();
+
+  pushMatrix();
+  translate(0,387.5*nDim); //Go to engines position
+  if(thisPlayer.boat.eng == -1){
+    rect(-50*nDim,-12.5*nDim,100*nDim,25*nDim);
+  }else if(thisPlayer.boat.eng == 0){
+    drawTier1Engine(0,0,200*nDim/2.0,1,inlineStroke);
+  }else if(thisPlayer.boat.eng == 1){
+    drawTier2Engine(0,0,200*nDim/2.0,1,inlineStroke);
+  }else if(thisPlayer.boat.eng == 2){
+    drawTier3Engine(0,0,200*nDim/2.0,1,inlineStroke);
+  }
+  popMatrix();
+
   popMatrix();
 }
 
@@ -530,4 +621,32 @@ void renderRadioMessageBalloons(){
   for(int i =0; i < radioMessageBalloonList.size();i++){
     radioMessageBalloonList.get(i).render();
   }
+}
+
+
+
+
+void drawMapScreen(){
+  //draw map
+  image(map,0,0);
+  //draw grid
+  for(int i = 0; i <= map.height/100;i++){
+    line(i*100,0,i*100,height);
+  }
+  for(int i = 0; i <= map.height/100;i++){
+    line(0,i*100,height,i*100);
+  }
+  //draw boat position
+  //draw friendly boat position
+  //draw radar
+  //draw enemies
+  //draw projectiles
+  //draw enemies and projectiles trajectories
+  //draw exit button
+  //draw fire button
+  //process coordinate selection
+}
+
+void drawCommandScreen(){
+
 }
