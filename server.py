@@ -8,7 +8,7 @@ from random import random
 from turtle import position
 from perlin_noise import PerlinNoise
 
-mapSize = 1 #map size in km
+mapSize = 2 #map size in km
 minPlayerNumber = 6
 teamBalancing = True
 HOST = "127.0.0.1"
@@ -530,6 +530,7 @@ def generateMap():
     pic = []
     threshold = 0.3
     print("Generating map")
+    maxValue = 0
     for i in range(xpix):
         row = []
         for j in range(ypix):
@@ -541,10 +542,16 @@ def generateMap():
                 noise_val = int(-1)
             else:
                 noise_val = int((noise_val-threshold)/(1-threshold)*100)
+            if noise_val> maxValue:
+                maxValue = noise_val
             row.append(noise_val)
         pic.append(row)
         if i%100==0:
             print(str(i/xpix*100) + "%")
+    for i in range(xpix):
+        for j in range(ypix):
+            if pic[i][j] > 0:
+                pic[i][j] = int((pic[i][j]/maxValue)*99)
     return pic
 
 if __name__ == '__main__':

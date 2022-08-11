@@ -1,6 +1,6 @@
 import java.net.*;
 
-int mapSize = 1; //Size in km
+int mapSize = 2; //Size in km
 PImage map = null;
 String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
 String playerName = "name"; //variable to hold the name of the client
@@ -172,8 +172,15 @@ void draw(){
       map.save("map.png");
     }
     pushMatrix();
-    scale(10);
+    pushMatrix();
+    translate(10,10);
+    scale(float(height-20)/map.height);
     image(map,0,0);
+    popMatrix();
+    noFill();
+    stroke(0,255,255);
+    rect(10,10,height-20,height-20);
+    rect(0,0,height,height);
     popMatrix();
     /*
     map.loadPixels();

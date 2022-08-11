@@ -221,6 +221,29 @@ void handleConnectivity(){
               }
             }
           }
+          if (mapSize*100 < height-20 || mapSize * 100 < width/3.0-20){
+            println("Map too small! Ressizing");
+            int factor = 2;
+            while(factor*mapSize*100 < height-20){
+              factor *= 2;
+            }
+            while(factor*mapSize*100 < width/3.0-20){
+              factor *= 2;
+            }
+            println("Ressizing with factor " +str(factor));
+            PImage newMap = createImage(mapSize*100*factor,mapSize*100*factor,RGB);
+            newMap.loadPixels();
+            for (int i = 0; i < mapSize*100; i++){
+              for (int j = 0; j < mapSize*100; j++){
+                for (int k = 0; k < factor; k++){
+                  for(int l = 0; l < factor; l++){
+                    newMap.pixels[i*mapSize*100*factor*factor + j*factor + k*mapSize*100*factor+l] = map.pixels[i*mapSize*100+j];
+                  }
+                }
+              }
+            }
+            map = newMap;
+          }
           map.updatePixels();
           println("Map saved!");
           sendServerRequest("map_received");
