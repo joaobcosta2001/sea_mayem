@@ -22,9 +22,6 @@ void setup(){
 
 
 void draw(){
-  if (textbox_main_screen_ip != null){
-    println(textbox_main_screen_ip.text.length());
-  }
   if (currentScreen == "drawLoadingScreen"){
     drawLoadingScreen();
     currentScreen = "loading";
@@ -32,7 +29,7 @@ void draw(){
     loadImages();
     loadFonts();
     loadUIElements();
-    //textbox_main_screen_ip.text = "localhost";
+    textbox_main_screen_ip.text = "localhost";
     textbox_main_screen_port.text = "4500";
     textbox_main_screen_name.text = "Bob";
     currentScreen = "main";
@@ -196,9 +193,9 @@ void preprocess(){
 }
 
 void loadUIElements(){
-  textbox_main_screen_ip = new UITextBox(width*5/12,height*(1.0/2+1.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"000.000.000.000");
-  textbox_main_screen_port = new UITextBox(width*5/12,height*(1.0/2+2.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"00000");
-  textbox_main_screen_name = new UITextBox(width*5/12,height*(1.0/2+3.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"player1");
+  textbox_main_screen_ip = new UITextBox(width*5/12,height*(1.0/2+1.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Endereco IP");
+  textbox_main_screen_port = new UITextBox(width*5/12,height*(1.0/2+2.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Porta");
+  textbox_main_screen_name = new UITextBox(width*5/12,height*(1.0/2+3.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Nome do Jogador");
   button_main_screen_connect = new UIButton(width/2-width/12,height*(1.0/2+4.0/15+1.0/15*1.0/6),width/6,height*(1.0/15*4.0/6),"Conectar");
   button_team_select_swap = new UIButton(width*5.5/16, height * 7.5/9, width*2/16.0,height*0.75/9,"Trocar");
   button_team_select_ready = new UIButton(width*8.5/16,height * 7.5/9, width*2/16.0,height*0.75/9,"Pronto");
