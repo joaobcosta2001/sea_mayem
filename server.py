@@ -203,6 +203,14 @@ class Turrets:
         self.mt = -1
         self.nav = -1
         self.eng = -1
+    def reset(self):
+        self.fat = -1
+        self.bat = -1
+        self.ft = -1
+        self.bt = -1
+        self.mt = -1
+        self.nav = -1
+        self.eng = -1
 
 
 for i in range(1):
@@ -324,6 +332,8 @@ def clientThread(connection, ip, port):
         try:
             data = connection.recv(1024)
         except ConnectionResetError:
+            break
+        except ConnectionAbortedError:
             break
         print("Received data: |" +  str(data) + "|")
         receivedPacket = str(data,"UTF-8")
@@ -496,7 +506,10 @@ def broadcastThread():
 
 def consoleThread():
     while True:
-        command = input()
+        try:
+            command = input()
+        except EOFError:
+            continue
         if command[:7] == "add bot":
             if currentStage != "lobby":
                 print("ERROR Cannot add bots if not in lobby!")
@@ -566,6 +579,13 @@ def consoleThread():
                     found = True
             if not found:
                 print("ERROR Player not found")
+        elif command == "restart":
+            for p in playerList:
+                if not p.bot:
+                    p.connection.close()
+                p.boat.turrets.reset()
+                currentStage = "lobby"
+
         else:
             print("ERROR Command unknow!")
 
