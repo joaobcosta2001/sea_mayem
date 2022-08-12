@@ -5,6 +5,7 @@ from threading import Thread
 from queue import Queue
 import sys
 from random import random
+from random import randint
 from turtle import position
 from perlin_noise import PerlinNoise
 
@@ -49,22 +50,22 @@ def getTurretPointCost(p):
     if p == -1:
         return 0
     if p == 0:
-        return 10
-    if p == 1:
-        return 15
-    if p == 2:
         return 5
+    if p == 1:
+        return 10
+    if p == 2:
+        return 15
     print("ERROR finding point cost of turret of type " + str(p))
 
 def getAntiTurretPointCost(p):
     if p == -1:
         return 0
     if p == 0:
-        return 10
-    if p == 1:
-        return 15
-    if p == 2:
         return 5
+    if p == 1:
+        return 10
+    if p == 2:
+        return 15
     print("ERROR finding point cost of anti turret of type "+ str(p))
 
 def getNavigationPointCost(p):
@@ -265,13 +266,22 @@ def clientThread(connection, ip, port):
             getPlayerByName(user).ready = True
             if checkAllPlayersReady():
                 if currentStage == "lobby":
-                    print("All players are ready, going building screen")
+                    print("All players are ready, going to building screen")
                     broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
-                    broadcast("building_screen")
+                    for player in playerList:
+                        if player.bot:
+                            player.boat.turrets.ft  = randint(0,2)
+                            player.boat.turrets.mt  = randint(0,2)
+                            player.boat.turrets.bt  = randint(0,2)
+                            player.boat.turrets.fat = randint(0,2)
+                            player.boat.turrets.bat = randint(0,2)
+                            player.boat.turrets.nav = randint(0,2)
+                            player.boat.turrets.eng = randint(0,2)
+                            while player.boat.getRemainingPoints() < 0:
+                                nerfBoat(player.boat)
+                        player.ready = player.bot
                     broadcast(formatBoatsInfo())
-                    #for player in playerList:
-                    #    player.ready = False
-                    getPlayerByName("Bob").ready = False
+                    broadcast("building_screen")
                     currentStage = "building"
                 elif currentStage == "building":
                     print("All player are ready, starting game")
@@ -616,3 +626,48 @@ if __name__ == '__main__':
     main()
 
 
+def nerfBoat(b):
+    while True:
+        t = randint(0,6)
+        if t == 0:
+            if getTurretPointCost(b.turrets.ft) > 5 and b.turrets.ft > 0:
+                b.turrets.ft-=1
+                break
+            else:
+                continue
+        elif t == 1:
+            if getTurretPointCost(b.turrets.mt) > 5 and b.turrets.mt > 0:
+                b.turrets.mt-=1
+                break
+            else:
+                continue
+        elif t == 2:
+            if getTurretPointCost(b.turrets.bt) > 5 and b.turrets.bt > 0:
+                b.turrets.bt-=1
+                break
+            else:
+                continue
+        elif t == 3:
+            if getAntiTurretPointCost(b.turrets.bat) > 5 and b.turrets.bat > 0:
+                b.turrets.bat-=1
+                break
+            else:
+                continue
+        elif t == 4:
+            if getAntiTurretPointCost(b.turrets.fat) > 5 and b.turrets.fat > 0:
+                b.turrets.fat-=1
+                break
+            else:
+                continue
+        elif t == 5:
+            if getNavigationPointCost(b.turrets.nav) > 5 and b.turrets.nav > 0:
+                b.turrets.nav-=1
+                break
+            else:
+                continue
+        elif t == 6:
+            if getEnginePointCost(b.turrets.eng) > 5 and b.turrets.eng > 0:
+                b.turrets.eng-=1
+                break
+            else:
+                continue
