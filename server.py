@@ -7,6 +7,7 @@ import sys
 from random import random
 from random import randint
 from turtle import position
+from matplotlib.pyplot import prism
 from perlin_noise import PerlinNoise
 
 mapSize = 2 #map size in km
@@ -90,6 +91,98 @@ def getEnginePointCost(p):
         return 15
     print("ERROR finding point cost of anti turret of type "+ str(p))
 
+def nerfBoat(b):
+    while True:
+        t = randint(0,6)
+        if t == 0:
+            if getTurretPointCost(b.turrets.ft) > 5 and b.turrets.ft > 0:
+                b.turrets.ft-=1
+                break
+            else:
+                continue
+        elif t == 1:
+            if getTurretPointCost(b.turrets.mt) > 5 and b.turrets.mt > 0:
+                b.turrets.mt-=1
+                break
+            else:
+                continue
+        elif t == 2:
+            if getTurretPointCost(b.turrets.bt) > 5 and b.turrets.bt > 0:
+                b.turrets.bt-=1
+                break
+            else:
+                continue
+        elif t == 3:
+            if getAntiTurretPointCost(b.turrets.bat) > 5 and b.turrets.bat > 0:
+                b.turrets.bat-=1
+                break
+            else:
+                continue
+        elif t == 4:
+            if getAntiTurretPointCost(b.turrets.fat) > 5 and b.turrets.fat > 0:
+                b.turrets.fat-=1
+                break
+            else:
+                continue
+        elif t == 5:
+            if getNavigationPointCost(b.turrets.nav) > 5 and b.turrets.nav > 0:
+                b.turrets.nav-=1
+                break
+            else:
+                continue
+        elif t == 6:
+            if getEnginePointCost(b.turrets.eng) > 5 and b.turrets.eng > 0:
+                b.turrets.eng-=1
+                break
+            else:
+                continue
+
+def enhanceBoat(b):
+    while True:
+        t = randint(0,6)
+        if t == 0:
+            if getTurretPointCost(b.turrets.ft) < 15 and b.turrets.ft < 2:
+                b.turrets.ft+=1
+                break
+            else:
+                continue
+        elif t == 1:
+            if getTurretPointCost(b.turrets.mt) < 15 and b.turrets.mt < 2:
+                b.turrets.mt+=1
+                break
+            else:
+                continue
+        elif t == 2:
+            if getTurretPointCost(b.turrets.bt) < 15 and b.turrets.bt < 2:
+                b.turrets.bt+=1
+                break
+            else:
+                continue
+        elif t == 3:
+            if getAntiTurretPointCost(b.turrets.bat) < 15 and b.turrets.bat < 2:
+                b.turrets.bat+=1
+                break
+            else:
+                continue
+        elif t == 4:
+            if getAntiTurretPointCost(b.turrets.fat) < 15 and b.turrets.fat < 2:
+                b.turrets.fat+=1
+                break
+            else:
+                continue
+        elif t == 5:
+            if getNavigationPointCost(b.turrets.nav) < 15 and b.turrets.nav < 2:
+                b.turrets.nav+=1
+                break
+            else:
+                continue
+        elif t == 6:
+            if getEnginePointCost(b.turrets.eng) < 15 and b.turrets.eng < 2:
+                b.turrets.eng+=1
+                break
+            else:
+                continue
+
 class Boat:
     def __init__(self):
         self.wastedPoints = 0
@@ -152,8 +245,6 @@ def formatTeamInfo():
             messageToSend = messageToSend + "X2"
         messageToSend = messageToSend + ","
     messageToSend = messageToSend[0:-1]
-    #DEBUG
-    print("TEAMS INFO: " + messageToSend)
     return messageToSend
 
 #Returns a string with the turret displays of all boats with syntax:
@@ -194,7 +285,6 @@ def loadMap(filename,mapSize):
     print("Map loaded successfully")
     return map
             
-
 def main():
     global map
     try:
@@ -279,6 +369,8 @@ def clientThread(connection, ip, port):
                             player.boat.turrets.eng = randint(0,2)
                             while player.boat.getRemainingPoints() < 0:
                                 nerfBoat(player.boat)
+                            while player.boat.getRemainingPoints() > 0:
+                                enhanceBoat(player.boat)
                         player.ready = player.bot
                     broadcast(formatBoatsInfo())
                     broadcast("building_screen")
@@ -384,7 +476,6 @@ def clientThread(connection, ip, port):
         team2.remove(player)
     print("Terminanting thread of client " + player.name + " (" + ip + ":" + str(port) + ")")
 
-
 def sendMessage(connection,message):
     connection.sendall(bytes(message + "|",'utf-8'))
 
@@ -436,10 +527,10 @@ def consoleThread():
                 p.name = name
                 p.ready = True
                 p.bot = True
-            broadcast(formatTeamInfo())
             print("Successfully added " + str(n) + " bots")
+            broadcast(formatTeamInfo())
         #MISSING remove player still doesnt disconnect
-        elif command[:14] == "remove player ":
+        elif command[:14] == "player remove ":
             removed = False
             for p in playerList:
                 if p.name == command[14:]:
@@ -455,17 +546,42 @@ def consoleThread():
                 broadcast("remove_player:" + command[14:])
             else:
                 print("ERROR player " + command[14:] + " not found")
+        elif command == "player list":
+            print("-----Player List-----")
+            for p in playerList:
+                print(p.name + " (team " + str(p.team) + ")")
+            print("---------------------")
+        elif command[:9] == "get boat ":
+            found = False
+            for p in playerList:
+                if p.name == command[9:]:
+                    print("Boat configuration of player " + command[9:] + ":")
+                    print("  ft:  " + str(p.boat.turrets.ft))
+                    print("  bt:  " + str(p.boat.turrets.bt))
+                    print("  mt:  " + str(p.boat.turrets.mt))
+                    print("  fat: " + str(p.boat.turrets.fat))
+                    print("  bat: " + str(p.boat.turrets.bat))
+                    print("  nav: " + str(p.boat.turrets.nav))
+                    print("  eng: " + str(p.boat.turrets.eng))
+                    found = True
+            if not found:
+                print("ERROR Player not found")
         else:
             print("ERROR Command unknow!")
 
 def checkAllPlayersReady():
     readyPlayerCount = 0
+    botCount = 0
     if len(playerList) < minPlayerNumber:
         return False
     for p in playerList:
         if p.ready:
             readyPlayerCount+=1
+        if p.bot:
+            botCount+=1
     if readyPlayerCount == len(playerList):
+        if readyPlayerCount == botCount:
+            return False
         if teamBalancing and (len(team1) > len(team2) + 1 or len(team2) > len(team1) +1):
             for p in playerList:
                 p.ready = False
@@ -614,60 +730,16 @@ def generateMap():
                 maxValue = noise_val
             row.append(noise_val)
         pic.append(row)
-        if i%100==0:
-            print(str(i/xpix*100) + "%")
+        if i%(mapSize*10)==0:
+            print(str(i/xpix*100) + "%",end="\r")
     for i in range(xpix):
         for j in range(ypix):
             if pic[i][j] > 0:
                 pic[i][j] = int((pic[i][j]/maxValue)*99)
+    print("Map Generated")
     return pic
 
 if __name__ == '__main__':
     main()
 
 
-def nerfBoat(b):
-    while True:
-        t = randint(0,6)
-        if t == 0:
-            if getTurretPointCost(b.turrets.ft) > 5 and b.turrets.ft > 0:
-                b.turrets.ft-=1
-                break
-            else:
-                continue
-        elif t == 1:
-            if getTurretPointCost(b.turrets.mt) > 5 and b.turrets.mt > 0:
-                b.turrets.mt-=1
-                break
-            else:
-                continue
-        elif t == 2:
-            if getTurretPointCost(b.turrets.bt) > 5 and b.turrets.bt > 0:
-                b.turrets.bt-=1
-                break
-            else:
-                continue
-        elif t == 3:
-            if getAntiTurretPointCost(b.turrets.bat) > 5 and b.turrets.bat > 0:
-                b.turrets.bat-=1
-                break
-            else:
-                continue
-        elif t == 4:
-            if getAntiTurretPointCost(b.turrets.fat) > 5 and b.turrets.fat > 0:
-                b.turrets.fat-=1
-                break
-            else:
-                continue
-        elif t == 5:
-            if getNavigationPointCost(b.turrets.nav) > 5 and b.turrets.nav > 0:
-                b.turrets.nav-=1
-                break
-            else:
-                continue
-        elif t == 6:
-            if getEnginePointCost(b.turrets.eng) > 5 and b.turrets.eng > 0:
-                b.turrets.eng-=1
-                break
-            else:
-                continue

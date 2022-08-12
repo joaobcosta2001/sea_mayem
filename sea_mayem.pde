@@ -313,37 +313,37 @@ void checkBuildingMenuSelections(){
   if (dist(mouseX,mouseY,width*8/16.0,height*2.6785/9) < height * 0.171875/9){
     selectedBuildingMenuPart = "Torre de Defesa Frontal";
     scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
     scrolllist_building_part_select.add("Torre anti-missil (+15p)");
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*5.73165/9) < height * 0.171875/9){
     selectedBuildingMenuPart = "Torre de Defesa Traseira";
     scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
     scrolllist_building_part_select.add("Torre anti-missil (+15p)");
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*3.2721875/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Frontal";
     scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.add("Canhao (+10p)");
     scrolllist_building_part_select.add("Lanca-misseis (+15p)");
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.ft;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*4.1203125/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Intermedia";
     scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.add("Canhao (+10p)");
     scrolllist_building_part_select.add("Lanca-misseis (+15p)");
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.mt;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*6.4950625/9) < height * 0.2578125/9){
     selectedBuildingMenuPart = "Torre Traseira";
     scrolllist_building_part_select.removeAll();
+    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.add("Canhao (+10p)");
     scrolllist_building_part_select.add("Lanca-misseis (+15p)");
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
   }else if (mouseX>width/2.0 - (height*5.5/9*800)*25 && mouseX<width/2.0 + (height*5.5/9*800)*25 && mouseY > height*2/9.0 + height*5.5/(9*800)*450 && mouseY < height*2/9.0 + height*5.5/(9*800)*500){
     selectedBuildingMenuPart = "Sistema de Navegacao";
@@ -387,11 +387,11 @@ int getTurretPoints(int t){
   if (t == -1){
     return 0;
   }else if(t == 0){
-    return 10;
-  }else if(t == 1){
-    return 15;
-  }else if(t == 2){
     return 5;
+  }else if(t == 1){
+    return 10;
+  }else if(t == 2){
+    return 15;
   }
   print("ERROR invalid argument to getTurretPoints()");
   return 0;
@@ -401,11 +401,11 @@ int getAntiTurretPoints(int t){
   if (t == -1){
     return 0;
   }else if(t == 0){
-    return 10;
-  }else if(t == 1){
-    return 15;
-  }else if(t == 2){
     return 5;
+  }else if(t == 1){
+    return 10;
+  }else if(t == 2){
+    return 15;
   }
   print("ERROR invalid argument to getAntiTurretPoints()");
   return 0;
