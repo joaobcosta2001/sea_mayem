@@ -224,7 +224,7 @@ void handleConnectivity(){
       if (m.length() >= 4){
         if (m.substring(0,4).equals("map:")){
           println("Saving map");
-          map = createImage(mapSize*100,mapSize*100,RGB);
+          map = createImage(mapSize*100,mapSize*100,ARGB);
           map.loadPixels();
           int count = 0;
           for (int i = 0; i < mapSize * 100; i++){
@@ -232,9 +232,9 @@ void handleConnectivity(){
               String s = m.substring(4+(i*mapSize*100+j)*2,4+(i*mapSize*100+j)*2+2);
               int c = int(s);
               if (c == -1){
-                map.pixels[i*mapSize*100+j] = color(0);
+                map.pixels[i*mapSize*100+j] = color(0,0,0,0);
               }else{
-                map.pixels[i*mapSize*100+j] = color(int(255*(1-c/100.0)),255,255);
+                map.pixels[i*mapSize*100+j] = color(int(255*(1-c/100.0)),255,255,255);
               }
             }
           }
@@ -264,6 +264,12 @@ void handleConnectivity(){
           map.updatePixels();
           println("Map saved!");
           sendServerRequest("map_received");
+        }
+      }
+      if (m.length() >= 10){
+        if (m.substring(0,10).equals("start_game")){
+          println("Starting game!");
+          currentScreen = "map_screen";
         }
       }
     }

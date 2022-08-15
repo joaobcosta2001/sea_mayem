@@ -6,6 +6,7 @@ from queue import Queue
 import sys
 from random import random
 from random import randint
+from tkinter import E
 from turtle import position
 from matplotlib.pyplot import prism
 from perlin_noise import PerlinNoise
@@ -368,20 +369,20 @@ def clientThread(connection, ip, port):
                 if currentStage == "lobby":
                     print("All players are ready, going to building screen")
                     broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
-                    for player in playerList:
-                        if player.bot:
-                            player.boat.turrets.ft  = randint(0,2)
-                            player.boat.turrets.mt  = randint(0,2)
-                            player.boat.turrets.bt  = randint(0,2)
-                            player.boat.turrets.fat = randint(0,2)
-                            player.boat.turrets.bat = randint(0,2)
-                            player.boat.turrets.nav = randint(0,2)
-                            player.boat.turrets.eng = randint(0,2)
-                            while player.boat.getRemainingPoints() < 0:
-                                nerfBoat(player.boat)
-                            while player.boat.getRemainingPoints() > 0:
-                                enhanceBoat(player.boat)
-                        player.ready = player.bot
+                    for p in playerList:
+                        if p.bot:
+                            p.boat.turrets.ft  = randint(0,2)
+                            p.boat.turrets.mt  = randint(0,2)
+                            p.boat.turrets.bt  = randint(0,2)
+                            p.boat.turrets.fat = randint(0,2)
+                            p.boat.turrets.bat = randint(0,2)
+                            p.boat.turrets.nav = randint(0,2)
+                            p.boat.turrets.eng = randint(0,2)
+                            while p.boat.getRemainingPoints() < 0:
+                                nerfBoat(p.boat)
+                            while p.boat.getRemainingPoints() > 0:
+                                enhanceBoat(p.boat)
+                        p.ready = p.bot
                     broadcast(formatBoatsInfo())
                     broadcast("building_screen")
                     currentStage = "building"
@@ -389,7 +390,7 @@ def clientThread(connection, ip, port):
                     print("All player are ready, starting game")
                     broadcast("game_loading_screen")
                     currentStage ="loading"
-                    generateGame()
+                    Thread(target = gameThread).start()
             else:
                 broadcast(formatTeamInfo())
 
@@ -477,6 +478,9 @@ def clientThread(connection, ip, port):
                     availableNormalPoints = rm - availableSpecialPoints
                 print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
                 sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
+        if message == "map_received":
+            print("Player " + player.name + " confirmed map reception")
+            player.ready = True
 
     connectionList.remove(connection)
     playerList.remove(player)
@@ -505,19 +509,20 @@ def broadcastThread():
                     print("Sent map data successfully")
 
 def consoleThread():
+    global currentStage
     while True:
         try:
             command = input()
         except EOFError:
             continue
-        if command[:7] == "add bot":
+        if command[:8] == "bots add":
             if currentStage != "lobby":
                 print("ERROR Cannot add bots if not in lobby!")
                 continue
             n = 1
-            if len(command) > 8:
+            if len(command) > 9:
                 try:
-                    n = int(command[8:])
+                    n = int(command[9:])
                 except:
                     print("Invalid number of bots to be added!")
             for i in range(n):
@@ -585,7 +590,15 @@ def consoleThread():
                     p.connection.close()
                 p.boat.turrets.reset()
                 currentStage = "lobby"
-
+            print("Restarted server")
+        elif command == "ready status":
+            print("-----Player List-----")
+            for p in playerList:
+                if p.ready:
+                    print(p.name + " - V")
+                else:
+                    print(p.name + " - X")
+            print("---------------------")
         else:
             print("ERROR Command unknow!")
 
@@ -679,9 +692,11 @@ def getTeamSecretInfo(team):
     else:
         print("ERROR invalid team given to getTeamSecretInfo()")
 
-def generateGame():
-    print("Generating game")
+def gameThread():
+    print("Starting game thread")
     global map
+    for p in playerList:
+        p.ready = p.bot
     #send map to players
     print("Preparing map information message")
     m = "map:"
@@ -691,39 +706,48 @@ def generateGame():
                 m = m + "0" + str(map[j][i])
             else:
                 m = m + str(map[j][i])
+    print("Sending map to all players")
     broadcast(m)
     #colocar navios em lados distintos do mapa
+    print("Placing team 1 players (" + str(len(team1)) + " players)")
     for player in team1:
-        player.boat.position = (50+100*random(),450+100*random())
+        player.boat.position = (50+randint(0,100),450+randint(0,100))
         positionOK = False
         while not positionOK:
             aux = False
             for player2 in playerList:
-                if abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
-                    player.boat.position = (50+100*random(),450+100*random())
+                if player2 != player and abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
+                    player.boat.position = (50+randint(0,100),450+randint(0,100))
                     aux = True
                     break
             if aux == False:
                 positionOK = True
         player.boat.rotation = 0
+    print("Team 1 players have been placed")
+    print("Placing team 2 players (" + str(len(team2)) + " players)")
     for player in team2:
         player.boat.position = (850+100*random(),450+100*random())
         positionOK = False
         while not positionOK:
             aux = False
             for player2 in playerList:
-                if abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
+                if player2 != player and abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
                     player.boat.position = (850+100*random(),450+100*random())
                     aux = True
                     break
             if aux == False:
                 positionOK = True
         player.boat.rotation = 180
-    #garantir que navios nao estao demasiado perto da costa
-    #esperar pela confirmacao de mapa criado
-    #dizer a todos para comecar
+    print("Team 2 players have been placed")
+    #MISSING garantir que navios nao estao demasiado perto da costa
+    #criar a thread que vai controlar o jogo
+    print("Checking map reception")
+    while not checkAllPlayersReady():
+        continue
+    print("All player confirmed ready, starting game")
+    broadcast(formatBoatsInfo())
+    broadcast("start_game")
 
-#def checkForMapGenerationConfirmations():
 
 def generateMap():
     noise1 = PerlinNoise(octaves=3)

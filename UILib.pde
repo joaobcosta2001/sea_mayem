@@ -690,3 +690,9 @@ UIScrollBar getUIScrollBarByLabel(String s){
   }
   return null;
 }
+
+void hideAllUIElements(){
+  for (int i = 0; i< UIElementList.size();i++){
+    UIElementList.get(i).visible = false;
+  }
+}

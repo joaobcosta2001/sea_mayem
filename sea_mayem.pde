@@ -91,10 +91,7 @@ void draw(){
       sendServerRequest("unready");
     }
   }else if(currentScreen == "building_screen_loading"){
-    scrolllist_team_select_team_1.visible = false;
-    scrolllist_team_select_team_2.visible = false;
-    button_team_select_ready.visible = false;
-    button_team_select_swap.visible = false;
+    hideAllUIElements();
     progressbar_bulding_total_normal_points.visible = true;
     progressbar_bulding_total_special_points.visible = true;
     progressbar_building_guns_points.visible = true;
@@ -139,22 +136,14 @@ void draw(){
       sendServerRequest("ready");
     }
   }else if (currentScreen == "game_loading_screen"){
-    progressbar_bulding_total_normal_points.visible = false;
-    progressbar_bulding_total_special_points.visible = false;
-    progressbar_building_guns_points.visible = false;
-    progressbar_building_defence_points.visible = false;
-    progressbar_building_navigation_points.visible = false;
-    progressbar_building_engine_points.visible = false;
-    scrolllist_building_team_list.visible = false;
-    scrolllist_building_part_select.visible = false;
-    textbox_building_boat_name.visible = false;
-    button_building_steal_intel.visible = false;
-    button_building_ready.visible = false;
+    hideAllUIElements();
     background(0);
     textFont(font_karma_future_100);
     fill(255);
     textAlign(CENTER);
     text("Carregando jogo...",width/2, height/2+50-textDescent());
+  }else if (currentScreen == "map_screen"){
+    drawMapScreen();
   }
 
   handleConnectivity();
@@ -166,7 +155,7 @@ void draw(){
   }
   renderRadioMessageBalloons();
   //DEBUG
-  if (map != null){
+  /*if (map != null){
     if (!image_saved){
       image_saved = true;
       map.save("map.png");
@@ -188,8 +177,8 @@ void draw(){
     for(int i = 0; i < 10; i++){
       int x = int(random(mapSize*mapSize*10000));
       println("Sample " + str(i+1) + " at " + str(x) + ": " + str(red(map.pixels[x])) + "," + str(green(map.pixels[x])) + "," + str(blue(map.pixels[x])));
-    }*/
-  }
+    }
+  }*/
 }
 boolean image_saved = false;
 
@@ -632,17 +621,42 @@ void renderRadioMessageBalloons(){
 
 
 
-
+//draws the map screen
+int lastFrame = 0;
 void drawMapScreen(){
+  background(0);
+  //calculate who big the map should be on the screen. That size is mapLenght. The margins are 10px thick
+  float mapLenght = width*2/3.0-20;
+  if (mapLenght >height-20){
+    mapLenght = height-20;
+  }
   //draw map
-  image(map,0,0);
+  noFill();
+  stroke(0,255,255);
+  rect(10,10,mapLenght,mapLenght);
+  rect(0,0,mapLenght+20,mapLenght+20);
   //draw grid
-  for(int i = 0; i <= map.height/100;i++){
-    line(i*100,0,i*100,height);
+  stroke(0,100,100);
+  for(int i = 0; i <= 25;i++){
+    line(10+i*mapLenght/25,10,10+i*mapLenght/25,10+mapLenght);
   }
-  for(int i = 0; i <= map.height/100;i++){
-    line(0,i*100,height,i*100);
+  for(int i = 0; i <= 25;i++){
+    line(10,10+i*mapLenght/25,10+mapLenght,10+i*mapLenght/25);
   }
+  image(map,10,10,mapLenght,mapLenght);
+  for(int i = 0; i< playerList.size(); i++){
+    Player p = playerList.get(i);
+    noStroke();
+    if (p.team == thisPlayer.team){
+      fill(0,255,0);
+    }else{
+      fill(255,0,0);
+    }
+    circle(p.boat.position.x*mapLenght/(mapSize*100)+10,p.boat.position.y*mapLenght/(mapSize*100)+10,5);
+  }
+  textAlign(LEFT);
+  text(str(1000/float(millis()-lastFrame)),100,100);
+  lastFrame = millis();
   //draw boat position
   //draw friendly boat position
   //draw radar
