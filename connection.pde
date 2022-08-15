@@ -28,7 +28,7 @@ void sendServerRequest(String t){
   }
   println("Sending server request |" + t + "|");
   try{
-    clientSocketOut.write(("(" + playerName + ")" + t).getBytes());
+    clientSocketOut.write(("(" + playerName + ")" + t + "|").getBytes());
   }catch(IOException e){
     handleSendServerRequestFailure();
   }
@@ -69,6 +69,7 @@ void handleConnectivity(){
       ;
     }
     String m = new String(bm);
+    //Checks if received message is part of a long message
     if (m.indexOf("|") == -1){
       if (longMessageCount == 0){
         println("Receiving long message");
@@ -77,6 +78,7 @@ void handleConnectivity(){
       longMessageCount++;
       return;
     }
+    //divides message in parts with '|' as the delimiter
     StringTokenizer st = new StringTokenizer(m,"|");
     while(st.hasMoreTokens()){
       m = st.nextToken();
@@ -85,6 +87,7 @@ void handleConnectivity(){
       }
       if (!longMessage.equals("")){
         m = longMessage + m;
+        //Eliminates '\0' in long messages
         for(int i = 0; i < m.length(); i++){
           if (m.charAt(i) == '\0'){
             println("Found null character!");
@@ -97,6 +100,29 @@ void handleConnectivity(){
       }else{
         //println("Received message: |" + m + "|");
         ;
+      }
+      if(m.length() >= 11){
+        if (m.substring(0,11).equals("login_info:")){
+          int i1 = 11, i2 = 11;
+          i2 = m.indexOf(",",i1);
+          mapSize = int(m.substring(i1,i2));
+          i1 = i2 + 1;
+          i2 = m.indexOf(",",i1);
+          MAX_NORMAL_POINTS = int(m.substring(i1,i2));
+          i1 = i2 + 1;
+          i2 = m.indexOf(",",i1);
+          MAX_SPECIAL_POINTS = int(m.substring(i1,i2));
+          i1 = i2 + 1;
+          i2 = m.indexOf(",",i1);
+          MAX_ATTACK_POINTS = int(m.substring(i1,i2));
+          i1 = i2 + 1;
+          i2 = m.indexOf(",",i1);
+          MAX_DEFENSE_POINTS = int(m.substring(i1,i2));
+          i1 = i2 + 1;
+          i2 = m.indexOf(",",i1);
+          MAX_NAVIGATION_POINTS = int(m.substring(i1,i2));
+          MAX_ENGINE_POINTS = int(m.substring(i2+1,m.length()));
+        }
       }
       if(m.length() >= 11){
         if (m.substring(0,11).equals("teams_info:")){
@@ -224,13 +250,21 @@ void handleConnectivity(){
       if (m.length() >= 4){
         if (m.substring(0,4).equals("map:")){
           println("Saving map");
-          map = createImage(mapSize*100,mapSize*100,ARGB);
+          map = createGraphics(mapSize*100,mapSize*100);
+          map.beginDraw();
           map.loadPixels();
           int count = 0;
           for (int i = 0; i < mapSize * 100; i++){
             for (int j = 0; j < mapSize * 100; j++){
               String s = m.substring(4+(i*mapSize*100+j)*2,4+(i*mapSize*100+j)*2+2);
               int c = int(s);
+              //DEBUG
+              if (map == null){
+                println("MAP IS NULL");
+              }
+              if (map.pixels == null){
+                println("MAP PIXELS IS NULL");
+              }
               if (c == -1){
                 map.pixels[i*mapSize*100+j] = color(0,0,0,0);
               }else{
@@ -248,7 +282,8 @@ void handleConnectivity(){
               factor *= 2;
             }
             println("Ressizing with factor " +str(factor));
-            PImage newMap = createImage(mapSize*100*factor,mapSize*100*factor,RGB);
+            PGraphics newMap = createGraphics(mapSize*100*factor,mapSize*100*factor);
+            newMap.beginDraw();
             newMap.loadPixels();
             for (int i = 0; i < mapSize*100; i++){
               for (int j = 0; j < mapSize*100; j++){
@@ -262,14 +297,23 @@ void handleConnectivity(){
             map = newMap;
           }
           map.updatePixels();
+          map.endDraw();
           println("Map saved!");
           sendServerRequest("map_received");
+          if (map == null){
+            print("Map ended up being null!");
+          }
         }
       }
       if (m.length() >= 10){
         if (m.substring(0,10).equals("start_game")){
           println("Starting game!");
           currentScreen = "map_screen";
+        }
+      }
+      if (m.length() >= 10){
+        if (m.substring(0,10).equals("game_info:")){
+          updateGameInfo(m);
         }
       }
     }
@@ -350,5 +394,38 @@ void updateBoats(String m){ //updates boats' displays
     i = m.indexOf(";",lastIndex);
     p.boat.eng = int(m.substring(lastIndex,i));
     lastIndex = i+1;
+  }
+}
+
+
+//update game informations, m is the string with the information sent by server
+//Message example: game_info:boats:Bob,100,100,Mary,100,150;
+void updateGameInfo(String m){
+  int i1 = 16, i2 = 16,stage = 0;
+  Player p = null;
+  while (true){
+    if (m.charAt(i1) == ',' || m.charAt(i1) == ';'){
+      if (stage == 0){
+        p = getPlayerByName(m.substring(i2, i1));
+        stage++;
+      }else if(stage == 1){
+        p.boat.position.x = float(m.substring(i2, i1));
+        stage++;
+      }else{
+        p.boat.position.y = float(m.substring(i2, i1));
+        stage = 0;
+        p = null;
+      }
+      i2 = i1+1;
+    }
+    if (m.charAt(i1) == ';'){
+      break;
+    }
+    i1++;
+  }
+  //DEBUG
+  println("Updated game info:");
+  for(int i = 0; i < playerList.size();i++){
+    println("Player " + playerList.get(i).name + ": " + str(playerList.get(i).boat.position.x) + "," + str(playerList.get(i).boat.position.y));
   }
 }

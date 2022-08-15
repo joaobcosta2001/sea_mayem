@@ -474,3 +474,16 @@ void drawTier3Engine(float x, float y, float s, float sp, float str){
 	popMatrix();
 	strokeWeight(1);
 }
+
+
+PGraphics generateRadarImage(){
+	PGraphics img = createGraphics(500,500);
+	img.beginDraw();
+	img.noStroke();
+	img.fill(0,255,255,1);
+	for (int i = 0; i < 100; i++){
+		img.arc(250,250,500,500,-PI/3 + PI/3*float(i)/100,0);
+	}
+	img.endDraw();
+	return img;
+}

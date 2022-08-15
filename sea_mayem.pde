@@ -1,7 +1,8 @@
 import java.net.*;
 
 int mapSize = 2; //Size in km
-PImage map = null;
+PGraphics map = null;
+PGraphics radarGraphics = null;
 String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
 String playerName = "name"; //variable to hold the name of the client
 Player thisPlayer = null;
@@ -66,8 +67,9 @@ void draw(){
       new UIMessage("Falha na conexão!");
       currentScreen = "main";
     }else{
+      sendServerRequest("login");
       sendServerRequest("request_teams");
-      resetVisibilities();
+      hideAllUIElements();
       currentScreen = "wait_connect_response";
     }
   }else if (currentScreen == "wait_connect_response"){
@@ -212,18 +214,12 @@ void loadUIElements(){
   button_building_ready = new UIButton(width*11.5/16,height*7.25/9,width*3.5/16,height*0.75/9,"Pronto");
 }
 
-
-void resetVisibilities(){
-  for(int i = 0; i< UIElementList.size();i++){
-    UIElementList.get(i).visible = false;
-  }
-}
-
 //IMAGES
 
 PImage logo;
 void loadImages(){
   logo = loadImage("logo.png");
+  radarGraphics = generateRadarImage();
 }
 PFont font_karma_future_100;
 PFont font_karma_suture_100;
@@ -484,11 +480,11 @@ void drawBoatDisplay(){
   if(thisPlayer.boat.bat == -1){
     circle(0,0,100*nDim/2.0);
   }else if(thisPlayer.boat.bat == 0){
-    drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
-  }else if(thisPlayer.boat.bat == 1){
-    drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
-  }else if(thisPlayer.boat.bat == 2){
     drawAntiTorpedoTurret(0,0,100*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.bat == 1){
+    drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
+  }else if(thisPlayer.boat.bat == 2){
+    drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y += 150*nDim;
@@ -500,11 +496,11 @@ void drawBoatDisplay(){
   if(thisPlayer.boat.ft == -1){
     circle(0,0,150*nDim/2.0);
   }else if(thisPlayer.boat.ft == 0){
-    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(thisPlayer.boat.ft == 1){
-    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(thisPlayer.boat.ft == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.ft == 1){
+    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
+  }else if(thisPlayer.boat.ft == 2){
+    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y -= 212.5*nDim;
@@ -516,11 +512,11 @@ void drawBoatDisplay(){
   if(thisPlayer.boat.mt == -1){
     circle(0,0,150*nDim/2.0);
   }else if(thisPlayer.boat.mt == 0){
-    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(thisPlayer.boat.mt == 1){
-    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(thisPlayer.boat.mt == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.mt == 1){
+    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
+  }else if(thisPlayer.boat.mt == 2){
+    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y -= 87.5*nDim;
@@ -532,11 +528,11 @@ void drawBoatDisplay(){
   if(thisPlayer.boat.bt == -1){
     circle(0,0,150*nDim/2.0);
   }else if(thisPlayer.boat.bt == 0){
-    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
-  }else if(thisPlayer.boat.bt == 1){
-    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
-  }else if(thisPlayer.boat.bt == 2){
     drawTorpedoTurret(0,0,150*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.bt == 1){
+    drawCannonTurret(0,0,150*nDim/2.0,0,inlineStroke);
+  }else if(thisPlayer.boat.bt == 2){
+    drawMissileTurret(0,0,150*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y += 262.5*nDim;
@@ -548,11 +544,11 @@ void drawBoatDisplay(){
   if(thisPlayer.boat.fat == -1){
     circle(0,0,100*nDim/2.0);
   }else if(thisPlayer.boat.fat == 0){
-    drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
-  }else if(thisPlayer.boat.fat == 1){
-    drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
-  }else if(thisPlayer.boat.fat == 2){
     drawAntiTorpedoTurret(0,0,100*nDim/2.0,inlineStroke);
+  }else if(thisPlayer.boat.fat == 1){
+    drawAntiCannonTurret(0,0,100*nDim/2.0,0,inlineStroke);
+  }else if(thisPlayer.boat.fat == 2){
+    drawAntiMissileTurret(0,0,100*nDim/2.0,inlineStroke);
   }
   popMatrix();
   mouseCoords.y -= 300*nDim;
@@ -620,9 +616,8 @@ void renderRadioMessageBalloons(){
 }
 
 
-
+float lastSavedAngle = -1;
 //draws the map screen
-int lastFrame = 0;
 void drawMapScreen(){
   background(0);
   //calculate who big the map should be on the screen. That size is mapLenght. The margins are 10px thick
@@ -643,23 +638,31 @@ void drawMapScreen(){
   for(int i = 0; i <= 25;i++){
     line(10,10+i*mapLenght/25,10+mapLenght,10+i*mapLenght/25);
   }
+  if (map == null){
+    println("MAP IS NULL BEFORE DRAWING"); //DEBUG
+  }
   image(map,10,10,mapLenght,mapLenght);
-  for(int i = 0; i< playerList.size(); i++){
+  //draw friendly boats
+  for(int i = 0; i< playerList.size();i++){
     Player p = playerList.get(i);
     noStroke();
     if (p.team == thisPlayer.team){
       fill(0,255,0);
-    }else{
-      fill(255,0,0);
+      //println("Displaying player at " + str(p.boat.position.x*mapLenght/(mapSize*100)+10) + "," + str(p.boat.position.y*mapLenght/(mapSize*100)+10));
+      circle(p.boat.position.x*mapLenght/(mapSize*1000)+10,p.boat.position.y*mapLenght/(mapSize*1000)+10,5);
     }
-    circle(p.boat.position.x*mapLenght/(mapSize*100)+10,p.boat.position.y*mapLenght/(mapSize*100)+10,5);
   }
-  textAlign(LEFT);
-  text(str(1000/float(millis()-lastFrame)),100,100);
-  lastFrame = millis();
-  //draw boat position
-  //draw friendly boat position
+  float currentAngle = (millis()-animationStartTime)/500.0;
+  float lastAngle = lastSavedAngle;
+  lastSavedAngle = currentAngle;
   //draw radar
+  pushMatrix();
+  translate(thisPlayer.boat.position.x*mapLenght/(mapSize*1000)+10,thisPlayer.boat.position.y*mapLenght/(mapSize*1000)+10);
+  rotate(currentAngle);
+  if(thisPlayer.boat.nav>=0){
+    image(radarGraphics,-200*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),-200*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000));
+  }
+  popMatrix();
   //draw enemies
   //draw projectiles
   //draw enemies and projectiles trajectories

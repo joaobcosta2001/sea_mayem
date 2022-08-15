@@ -266,6 +266,22 @@ def formatBoatsInfo():
     return m
 
 
+#Returns a string in the format
+#   game_info:boats:Bob,100,100,Mary,100,150;
+def formatGameObjectsInfo():
+    m = "game_info:"
+    m += "boats:"
+    for p in playerList:
+        m += p.name + ","
+        m += str(p.boat.position[0]) + ","
+        m += str(p.boat.position[1]) + ","
+    m = m[:-1] + ";"
+    return m
+
+
+
+
+
 def saveMap(location,m):
     print("Saving map to " + location)
     f = open(location + "map_" + str(len(m)) + "x" + str(len(m[0])) + ".txt","w")
@@ -336,137 +352,124 @@ def clientThread(connection, ip, port):
             break
         except ConnectionAbortedError:
             break
-        print("Received data: |" +  str(data) + "|")
         receivedPacket = str(data,"UTF-8")
-        separator = receivedPacket.find(")",1, len(receivedPacket))
-        user = receivedPacket[1:separator]
-        message = receivedPacket[separator+1:]
+        while(True):
+            separator = receivedPacket.find(")",1, len(receivedPacket))
+            user = receivedPacket[1:separator]
+            message = receivedPacket[separator+1:receivedPacket.find("|",1,len(receivedPacket))]
 
 
-        #Handle messages
-
-        if player.name == "":
-            player.name = user
-
-        if (message == "request_teams"):
-            broadcast(formatTeamInfo())
-        
-        if (message == "swap_teams"):
-            print("Swapping user " + user + " to team 1")
-            p = getPlayerByName(user)
-            try:
-                team1.remove(p)
-                team2.append(p)
-            except:
-                team2.remove(p)
-                team1.append(p)
-            broadcast(formatTeamInfo())
+            #Handle messages
+            if (message == "request_teams"):
+                broadcast(formatTeamInfo())
             
+            if (message == "swap_teams"):
+                print("Swapping user " + user + " to team 1")
+                p = getPlayerByName(user)
+                try:
+                    team1.remove(p)
+                    team2.append(p)
+                except:
+                    team2.remove(p)
+                    team1.append(p)
+                broadcast(formatTeamInfo())
+                
 
-        if (message == "ready"):
-            getPlayerByName(user).ready = True
-            if checkAllPlayersReady():
-                if currentStage == "lobby":
-                    print("All players are ready, going to building screen")
-                    broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
-                    for p in playerList:
-                        if p.bot:
-                            p.boat.turrets.ft  = randint(0,2)
-                            p.boat.turrets.mt  = randint(0,2)
-                            p.boat.turrets.bt  = randint(0,2)
-                            p.boat.turrets.fat = randint(0,2)
-                            p.boat.turrets.bat = randint(0,2)
-                            p.boat.turrets.nav = randint(0,2)
-                            p.boat.turrets.eng = randint(0,2)
-                            while p.boat.getRemainingPoints() < 0:
-                                nerfBoat(p.boat)
-                            while p.boat.getRemainingPoints() > 0:
-                                enhanceBoat(p.boat)
-                        p.ready = p.bot
-                    broadcast(formatBoatsInfo())
-                    broadcast("building_screen")
-                    currentStage = "building"
-                elif currentStage == "building":
-                    print("All player are ready, starting game")
-                    broadcast("game_loading_screen")
-                    currentStage ="loading"
-                    Thread(target = gameThread).start()
-            else:
+            if (message == "ready"):
+                getPlayerByName(user).ready = True
+                print("Player " + user + " is now ready")
+                if checkAllPlayersReady():
+                    if currentStage == "lobby":
+                        print("All players are ready, going to building screen")
+                        broadcast("points_info:" + str(MAX_NORMAL_POINTS) + ":" + str(MAX_SPECIAL_POINTS))
+                        for p in playerList:
+                            if p.bot:
+                                p.boat.turrets.ft  = randint(0,2)
+                                p.boat.turrets.mt  = randint(0,2)
+                                p.boat.turrets.bt  = randint(0,2)
+                                p.boat.turrets.fat = randint(0,2)
+                                p.boat.turrets.bat = randint(0,2)
+                                p.boat.turrets.nav = randint(0,2)
+                                p.boat.turrets.eng = randint(0,2)
+                                while p.boat.getRemainingPoints() < 0:
+                                    nerfBoat(p.boat)
+                                while p.boat.getRemainingPoints() > 0:
+                                    enhanceBoat(p.boat)
+                            p.ready = p.bot
+                        broadcast(formatBoatsInfo())
+                        broadcast("building_screen")
+                        currentStage = "building"
+                    elif currentStage == "building":
+                        print("All player are ready, starting game")
+                        broadcast("game_loading_screen")
+                        currentStage ="loading"
+                        Thread(target = gameThread).start()
+                else:
+                    broadcast(formatTeamInfo())
+
+            if(message == "unready"):
+                print("Player " + user + " is no longer ready")
+                getPlayerByName(user).ready = False
                 broadcast(formatTeamInfo())
 
-        if(message == "unready"):
-            getPlayerByName(user).ready = False
-            broadcast(formatTeamInfo())
-
-        if message[:11] == "change_part":
-            p = getPlayerByName(user)
-            if message[12:14] == "ft":
-                newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.ft):
-                    p.boat.turrets.ft = newTurretValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:14] == "mt":
-                newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.mt):
-                    p.boat.turrets.mt = newTurretValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:14] == "bt":
-                newTurretValue = int(message[15:])
-                if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.bt):
-                    p.boat.turrets.bt = newTurretValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:15] == "fat":
-                newTurretValue = int(message[16:])
-                if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.fat):
-                    p.boat.turrets.fat = newTurretValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:15] == "bat":
-                newTurretValue = int(message[16:])
-                if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.bat):
-                    p.boat.turrets.bat = newTurretValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:15] == "nav":
-                newNavValue = int(message[16:])
-                if getNavigationPointCost(newNavValue) <= p.boat.getRemainingPoints() + getNavigationPointCost(player.boat.turrets.nav):
-                    p.boat.turrets.nav = newNavValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            if message[12:15] == "eng":
-                newEngineValue = int(message[16:])
-                if getEnginePointCost(newEngineValue) <= p.boat.getRemainingPoints() + getEnginePointCost(player.boat.turrets.eng):
-                    p.boat.turrets.eng = newEngineValue
-                    broadcast(formatBoatsInfo())
-                else:
-                    sendMessage(connection,"not_enough_points")
-            rm = player.boat.getRemainingPoints()
-            availableNormalPoints = 0
-            availableSpecialPoints = 0
-            if rm < MAX_SPECIAL_POINTS - player.boat.wastedPoints:
-                availableSpecialPoints = rm
-                availableNormalPoints = 0
-            else:
-                availableSpecialPoints = MAX_SPECIAL_POINTS - player.boat.wastedPoints
-                availableNormalPoints = rm - availableSpecialPoints
-            print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
-            sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
-        if message == "steal_intel":
-            if player.boat.wastedPoints < MAX_SPECIAL_POINTS and p.boat.getRemainingPoints() >= 5:
-                player.boat.wastedPoints += 5
-                if player.team == 1:
-                    sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(2))
-                elif player.team == 2:
-                    sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(1))
+            if message[:11] == "change_part":
+                p = getPlayerByName(user)
+                if message[12:14] == "ft":
+                    newTurretValue = int(message[15:])
+                    if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.ft):
+                        p.boat.turrets.ft = newTurretValue
+                        print("Player " + user + " changed front turret to " + str(newTurretValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:14] == "mt":
+                    newTurretValue = int(message[15:])
+                    if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.mt):
+                        p.boat.turrets.mt = newTurretValue
+                        print("Player " + user + " changed middle turret to " + str(newTurretValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:14] == "bt":
+                    newTurretValue = int(message[15:])
+                    if getTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getTurretPointCost(player.boat.turrets.bt):
+                        p.boat.turrets.bt = newTurretValue
+                        print("Player " + user + " changed back turret to " + str(newTurretValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:15] == "fat":
+                    newTurretValue = int(message[16:])
+                    if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.fat):
+                        p.boat.turrets.fat = newTurretValue
+                        print("Player " + user + " changed front anti-turret to " + str(newTurretValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:15] == "bat":
+                    newTurretValue = int(message[16:])
+                    if getAntiTurretPointCost(newTurretValue) <= p.boat.getRemainingPoints() + getAntiTurretPointCost(player.boat.turrets.bat):
+                        p.boat.turrets.bat = newTurretValue
+                        print("Player " + user + " changed back anti-turret to " + str(newTurretValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:15] == "nav":
+                    newNavValue = int(message[16:])
+                    if getNavigationPointCost(newNavValue) <= p.boat.getRemainingPoints() + getNavigationPointCost(player.boat.turrets.nav):
+                        p.boat.turrets.nav = newNavValue
+                        print("Player " + user + " changed navigation system to " + str(newNavValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
+                if message[12:15] == "eng":
+                    newEngineValue = int(message[16:])
+                    if getEnginePointCost(newEngineValue) <= p.boat.getRemainingPoints() + getEnginePointCost(player.boat.turrets.eng):
+                        p.boat.turrets.eng = newEngineValue
+                        print("Player " + user + " changed engine to " + str(newEngineValue))
+                        broadcast(formatBoatsInfo())
+                    else:
+                        sendMessage(connection,"not_enough_points")
                 rm = player.boat.getRemainingPoints()
                 availableNormalPoints = 0
                 availableSpecialPoints = 0
@@ -478,10 +481,40 @@ def clientThread(connection, ip, port):
                     availableNormalPoints = rm - availableSpecialPoints
                 print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
                 sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
-        if message == "map_received":
-            print("Player " + player.name + " confirmed map reception")
-            player.ready = True
 
+            if message == "steal_intel":
+                if player.boat.wastedPoints < MAX_SPECIAL_POINTS and p.boat.getRemainingPoints() >= 5:
+                    player.boat.wastedPoints += 5
+                    if player.team == 1:
+                        sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(2))
+                    elif player.team == 2:
+                        sendMessage(connection,"stolen_intel:" + getTeamSecretInfo(1))
+                    rm = player.boat.getRemainingPoints()
+                    availableNormalPoints = 0
+                    availableSpecialPoints = 0
+                    if rm < MAX_SPECIAL_POINTS - player.boat.wastedPoints:
+                        availableSpecialPoints = rm
+                        availableNormalPoints = 0
+                    else:
+                        availableSpecialPoints = MAX_SPECIAL_POINTS - player.boat.wastedPoints
+                        availableNormalPoints = rm - availableSpecialPoints
+                    print("Sending points info to " + player.name + ": np=" + str(availableNormalPoints) + "  sp=" + str(availableSpecialPoints) + "  rm=" + str(player.boat.getRemainingPoints()) + "  wp=" + str(player.boat.wastedPoints))
+                    sendMessage(connection,"points_info:" + str(availableNormalPoints) + ":" + str(availableSpecialPoints))
+
+            if message == "map_received":
+                print("Player " + player.name + " confirmed map reception")
+                player.ready = True
+            
+            if message == "login":
+                player.name = user
+                sendMessage(connection,"login_info:"+ str(mapSize) + "," + str(MAX_NORMAL_POINTS) + "," + str(MAX_SPECIAL_POINTS) + "," + str(MAX_ATTACK_POINTS) + "," + str(MAX_DEFENSE_POINTS) + "," + str(MAX_NAVIGATION_POINTS) + "," + str(MAX_ENGINE_POINTS))
+                print("Player " + user + " logged in")
+            
+
+            if receivedPacket.find("|",1,len(receivedPacket)) == len(receivedPacket)-1:
+                break
+            receivedPacket = receivedPacket[receivedPacket.find("|",1,len(receivedPacket))+1:]
+            
     connectionList.remove(connection)
     playerList.remove(player)
     if player.team == 1:
@@ -745,7 +778,7 @@ def gameThread():
     while not checkAllPlayersReady():
         continue
     print("All player confirmed ready, starting game")
-    broadcast(formatBoatsInfo())
+    broadcast(formatGameObjectsInfo())
     broadcast("start_game")
 
 
