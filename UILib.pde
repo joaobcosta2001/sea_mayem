@@ -20,11 +20,11 @@ class UIElement{
 }
 
 class UIButton extends UIElement{
-  color textColor, backgroundColor, strokeColor, selectedTextColor, selectedBackgroundColor, selectedStrokeColor;
+  color textColor, backgroundColor, strokeColor, selectedTextColor, selectedBackgroundColor, selectedStrokeColor,disabledTextColor,disabledBackgroundColor,disabledStrokeColor;
   float margin, fontSize;
   String text;
   PFont font;
-  boolean clicked,released;
+  boolean clicked,released,enabled;
   UIButton(float x, float y, float w, float h,String t){
     UIElementList.add(this);
     UIButtonList.add(this);
@@ -37,6 +37,9 @@ class UIButton extends UIElement{
     this.selectedTextColor = color(255);
     this.selectedBackgroundColor = color(0,255,255,50);
     this.selectedStrokeColor = color(255);
+    this.disabledTextColor = color(100);
+    this.disabledBackgroundColor = color(255,20);
+    this.disabledStrokeColor = color(0,255,255);
     this.text = t;
     this.margin = 10;
     this.font = font_default;
@@ -45,22 +48,33 @@ class UIButton extends UIElement{
     this.clicked = false;
     this.released = false;
     this.label = "button_" + str(UIButtonList.size());
+    this.enabled = true;
   }
   void render(){
     textFont(this.font);
-    if (selectedUIElement == this.label){
-      stroke(this.selectedStrokeColor);
-      fill(this.selectedBackgroundColor);
-      rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
-      fill(this.selectedTextColor);
-      textSize(this.fontSize);
-      textAlign(CENTER);
-      text(this.text,this.position.x+this.dimensions.x/2,this.position.y+this.dimensions.y/2 + this.fontSize/2 - textDescent());
+    if(this.enabled){
+      if (selectedUIElement == this.label){
+        stroke(this.selectedStrokeColor);
+        fill(this.selectedBackgroundColor);
+        rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
+        fill(this.selectedTextColor);
+        textSize(this.fontSize);
+        textAlign(CENTER);
+        text(this.text,this.position.x+this.dimensions.x/2,this.position.y+this.dimensions.y/2 + this.fontSize/2 - textDescent());
+      }else{
+        stroke(this.strokeColor);
+        fill(this.backgroundColor);
+        rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
+        fill(this.textColor);
+        textSize(this.fontSize);
+        textAlign(CENTER);
+        text(this.text,this.position.x+this.dimensions.x/2,this.position.y+this.dimensions.y/2 + this.fontSize/2 - textDescent());
+      }
     }else{
-      stroke(this.strokeColor);
-      fill(this.backgroundColor);
+      stroke(this.disabledStrokeColor);
+      fill(this.disabledBackgroundColor);
       rect(this.position.x,this.position.y,this.dimensions.x,this.dimensions.y);
-      fill(this.textColor);
+      fill(this.disabledTextColor);
       textSize(this.fontSize);
       textAlign(CENTER);
       text(this.text,this.position.x+this.dimensions.x/2,this.position.y+this.dimensions.y/2 + this.fontSize/2 - textDescent());
@@ -458,7 +472,7 @@ void processUILib(){
 void processUILibMousePressed(){
   UIButton b = checkMouseOverUIButton();
   if (b != null){
-    if(b.visible){
+    if(b.visible && b.enabled){
       b.clicked = true;
       selectedUIElement = b.label;
       return;
