@@ -299,6 +299,18 @@ void handleConnectivity(){
           map.updatePixels();
           map.endDraw();
           println("Map saved!");
+
+          //Other pregame loading
+          mapLenght = width*2/3.0-20;
+          if (mapLenght >height-20){
+            mapLenght = height-20;
+          }
+          if(thisPlayer.boat.nav == -1){
+            thisPlayer.boat.nav = 0;
+          }
+          radarDetectionGraphics = createGraphics(int(400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000)),int(400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000)));
+
+
           sendServerRequest("map_received");
           if (map == null){
             print("Map ended up being null!");

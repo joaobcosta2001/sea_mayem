@@ -3,10 +3,12 @@ import java.net.*;
 int mapSize = 2; //Size in km
 PGraphics map = null;
 PGraphics radarGraphics = null;
+PGraphics radarDetectionGraphics = null;
 String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
 String playerName = "name"; //variable to hold the name of the client
 Player thisPlayer = null;
 long animationStartTime = 0;
+float mapLenght;
 
 
 ArrayList<Player> playerList = new ArrayList<Player>();
@@ -216,9 +218,7 @@ void loadUIElements(){
 
 //IMAGES
 
-PImage logo;
 void loadImages(){
-  logo = loadImage("logo.png");
   radarGraphics = generateRadarImage();
 }
 PFont font_karma_future_100;
@@ -620,11 +620,7 @@ float lastSavedAngle = -1;
 //draws the map screen
 void drawMapScreen(){
   background(0);
-  //calculate who big the map should be on the screen. That size is mapLenght. The margins are 10px thick
-  float mapLenght = width*2/3.0-20;
-  if (mapLenght >height-20){
-    mapLenght = height-20;
-  }
+  
   //draw map
   noFill();
   stroke(0,255,255);
@@ -638,9 +634,6 @@ void drawMapScreen(){
   for(int i = 0; i <= 25;i++){
     line(10,10+i*mapLenght/25,10+mapLenght,10+i*mapLenght/25);
   }
-  if (map == null){
-    println("MAP IS NULL BEFORE DRAWING"); //DEBUG
-  }
   image(map,10,10,mapLenght,mapLenght);
   //draw friendly boats
   for(int i = 0; i< playerList.size();i++){
@@ -648,29 +641,97 @@ void drawMapScreen(){
     noStroke();
     if (p.team == thisPlayer.team){
       fill(0,255,0);
-      //println("Displaying player at " + str(p.boat.position.x*mapLenght/(mapSize*100)+10) + "," + str(p.boat.position.y*mapLenght/(mapSize*100)+10));
       circle(p.boat.position.x*mapLenght/(mapSize*1000)+10,p.boat.position.y*mapLenght/(mapSize*1000)+10,5);
     }
   }
-  float currentAngle = (millis()-animationStartTime)/500.0;
+  float currentAngle = getAngleBelow2PI((millis()-animationStartTime)/500.0);
   float lastAngle = lastSavedAngle;
   lastSavedAngle = currentAngle;
   //draw radar
   pushMatrix();
-  translate(thisPlayer.boat.position.x*mapLenght/(mapSize*1000)+10,thisPlayer.boat.position.y*mapLenght/(mapSize*1000)+10);
+  PVector playerScreenCoords = mapToScreenCoords(thisPlayer.boat.position);
+  translate(playerScreenCoords.x,playerScreenCoords.y);
   rotate(currentAngle);
   if(thisPlayer.boat.nav>=0){
     image(radarGraphics,-200*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),-200*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000),400*(1+thisPlayer.boat.nav)*mapLenght/(mapSize*1000));
   }
   popMatrix();
   //draw enemies
+  radarDetectionGraphics.beginDraw();
+  radarDetectionGraphics.loadPixels();
+  for (int i = 0; i< radarDetectionGraphics.width*radarDetectionGraphics.height;i++){
+    radarDetectionGraphics.pixels[i] = color(red(radarDetectionGraphics.pixels[i]),green(radarDetectionGraphics.pixels[i]),blue(radarDetectionGraphics.pixels[i]),int(alpha(radarDetectionGraphics.pixels[i]) * 0.95));
+  }
+  radarDetectionGraphics.updatePixels();
+  radarDetectionGraphics.fill(255,0,0);
+  radarDetectionGraphics.noStroke();
+  //Go through each player
+  for (int i = 0; i < playerList.size(); i++){
+    Player p = playerList.get(i);
+    //If it is an enemy and within range
+    if (p.team != thisPlayer.team && dist(p.boat.position.x,p.boat.position.y,thisPlayer.boat.position.x,thisPlayer.boat.position.y) < 200*(1+thisPlayer.boat.nav)){
+      //get angle of the enemy
+      float a = PVector.angleBetween(new PVector(p.boat.position.x-thisPlayer.boat.position.x,p.boat.position.y-thisPlayer.boat.position.y),new PVector(1,0));
+      if (p.boat.position.y-thisPlayer.boat.position.y < 0){
+        a = 2 * PI-a;
+      }
+      //Check if angle is within current radar sweep
+      if(currentAngle < lastAngle){ //last angle is almost 2 Pi and current angle is just above 0
+        if(a < currentAngle || a > lastAngle){
+          PVector delta = mapToScreenCoords(new PVector(p.boat.position.x-thisPlayer.boat.position.x,p.boat.position.y-thisPlayer.boat.position.y));
+          println("Player at " + str(p.boat.position.x) + "," + str(p.boat.position.y) + "   delta: " + str(p.boat.position.x-thisPlayer.boat.position.x) + "," + str(p.boat.position.y-thisPlayer.boat.position.y));
+          radarDetectionGraphics.circle(delta.x+radarDetectionGraphics.width/2,delta.y+radarDetectionGraphics.height/2,5);
+        }
+      }else{
+        if(a < currentAngle && a > lastAngle){
+          PVector delta = new PVector((p.boat.position.x-thisPlayer.boat.position.x)*mapLenght/(mapSize*1000),(p.boat.position.y-thisPlayer.boat.position.y)*mapLenght/(mapSize*1000));
+          radarDetectionGraphics.circle(radarDetectionGraphics.width/2+delta.x,radarDetectionGraphics.height/2+delta.y,5);
+        }
+      }
+    }
+  }
+  radarDetectionGraphics.endDraw();
+  image(radarDetectionGraphics,playerScreenCoords.x - radarDetectionGraphics.width/2.0,playerScreenCoords.y - radarDetectionGraphics.height/2.0);
   //draw projectiles
   //draw enemies and projectiles trajectories
   //draw exit button
   //draw fire button
   //process coordinate selection
+
+  //DEBUG
+  PVector a = mapToScreenCoords(new PVector(2000,0));
+  fill(255);
+  circle(a.x,a.y,10);
 }
 
 void drawCommandScreen(){
 
+}
+
+
+PVector screenToMapCoords(PVector p){
+  if (p == null){
+    println("ERROR screenToMapCoords argument was null!");
+    return null;
+  }
+  PVector aux = p.copy();
+  aux.sub(10,10);
+  aux.mult(mapSize*1000/mapLenght);
+  return aux;
+}
+
+PVector mapToScreenCoords(PVector p){
+  if (p == null){
+    println("ERROR mapToScreenCoords argument was null!");
+    return null;
+  }
+  PVector aux = p.copy();
+  aux.mult(mapLenght/(mapSize*1000));
+  aux.add(10,10);
+  return aux;
+}
+
+
+float getAngleBelow2PI(float n){
+  return n - floor(n/(2*PI))*2*PI;
 }

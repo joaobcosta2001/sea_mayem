@@ -744,13 +744,13 @@ def gameThread():
     #colocar navios em lados distintos do mapa
     print("Placing team 1 players (" + str(len(team1)) + " players)")
     for player in team1:
-        player.boat.position = (50+randint(0,100),450+randint(0,100))
+        player.boat.position = (450+randint(0,500),450+randint(0,500))
         positionOK = False
         while not positionOK:
             aux = False
             for player2 in playerList:
                 if player2 != player and abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
-                    player.boat.position = (50+randint(0,100),450+randint(0,100))
+                    player.boat.position = (450+randint(0,500),450+randint(0,500))
                     aux = True
                     break
             if aux == False:
@@ -759,13 +759,13 @@ def gameThread():
     print("Team 1 players have been placed")
     print("Placing team 2 players (" + str(len(team2)) + " players)")
     for player in team2:
-        player.boat.position = (850+100*random(),450+100*random())
+        player.boat.position = (450+randint(0,500),450+randint(0,500))
         positionOK = False
         while not positionOK:
             aux = False
             for player2 in playerList:
                 if player2 != player and abs(player.boat.position[0] - player2.boat.position[0]) < 20 and abs(player.boat.position[1] - player2.boat.position[1]) < 20:
-                    player.boat.position = (850+100*random(),450+100*random())
+                    player.boat.position = (450+randint(0,500),450+randint(0,500))
                     aux = True
                     break
             if aux == False:
