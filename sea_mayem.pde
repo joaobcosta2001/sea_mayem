@@ -4,6 +4,7 @@ int mapSize = 2; //Size in km
 PGraphics map = null;
 PGraphics radarGraphics = null;
 PGraphics radarDetectionGraphics = null;
+PGraphics crossair = null;
 String currentScreen = "drawLoadingScreen"; //set the current screen as the inital screen
 String playerName = "name"; //variable to hold the name of the client
 Player thisPlayer = null;
@@ -148,6 +149,20 @@ void draw(){
     text("Carregando jogo...",width/2, height/2+50-textDescent());
   }else if (currentScreen == "map_screen"){
     drawMapScreen();
+    if(button_map_screen_fire_ft.clicked){
+      sendServerRequest("fire:ft," + targetCoords.x + "," + targetCoords.y);
+    }
+    if(button_map_screen_fire_mt.clicked){
+      sendServerRequest("fire:mt," + targetCoords.x + "," + targetCoords.y);
+    }
+    if(button_map_screen_fire_bt.clicked){
+      sendServerRequest("fire:bt," + targetCoords.x + "," + targetCoords.y);
+    }
+    if(button_map_screen_back.clicked){
+      currentScreen = "command_screen";
+    }
+  }else if (currentScreen == "currentScreen"){
+    drawCommandScreen();
   }
 
   handleConnectivity();
@@ -158,33 +173,7 @@ void draw(){
     drawGreenTick(width*15/16.0,height*8/9.0,width*.5*16/15000);
   }
   renderRadioMessageBalloons();
-  //DEBUG
-  /*if (map != null){
-    if (!image_saved){
-      image_saved = true;
-      map.save("map.png");
-    }
-    pushMatrix();
-    pushMatrix();
-    translate(10,10);
-    scale(float(height-20)/map.height);
-    image(map,0,0);
-    popMatrix();
-    noFill();
-    stroke(0,255,255);
-    rect(10,10,height-20,height-20);
-    rect(0,0,height,height);
-    popMatrix();
-    /*
-    map.loadPixels();
-    println("Random sampling");
-    for(int i = 0; i < 10; i++){
-      int x = int(random(mapSize*mapSize*10000));
-      println("Sample " + str(i+1) + " at " + str(x) + ": " + str(red(map.pixels[x])) + "," + str(green(map.pixels[x])) + "," + str(blue(map.pixels[x])));
-    }
-  }*/
 }
-boolean image_saved = false;
 
 
 void preprocess(){
@@ -223,6 +212,7 @@ void loadUIElements(){
 //IMAGES
 PGraphics ropeBar;
 void loadImages(){
+  //Load ropeBar
   ropeBar = createGraphics(10,height);
   ropeBar.beginDraw();
   ropeBar.stroke(255);
@@ -232,8 +222,23 @@ void loadImages(){
   ropeBar.line(0,0,0,ropeBar.height);
   ropeBar.line(ropeBar.width-1,0,ropeBar.width-1,ropeBar.height);
   ropeBar.endDraw();
+  //load radar
   radarGraphics = generateRadarImage();
+  //Load crossair
+  crossair = createGraphics(100,100);
+  crossair.beginDraw();
+  crossair.stroke(255);
+  crossair.line(crossair.width/2,0,crossair.width/2,crossair.height*3/8.0);
+  crossair.line(0,crossair.height/2,crossair.width*3/8.0,crossair.height/2);
+  crossair.line(crossair.width/2,crossair.height*5/8.0,crossair.width/2,crossair.height);
+  crossair.line(crossair.width*5/8.0,crossair.height/2,crossair.width,crossair.height/2);
+  crossair.noFill();
+  crossair.circle(crossair.width/2,crossair.height/2,crossair.width/2.0);
+  crossair.circle(crossair.width/2,crossair.height/2,crossair.width*3/4.0);
+  crossair.endDraw();
+
 }
+
 PFont font_karma_future_100;
 PFont font_karma_suture_100;
 void loadFonts(){
@@ -726,26 +731,22 @@ void drawMapScreen(){
   }
   radarDetectionGraphics.endDraw();
   image(radarDetectionGraphics,playerScreenCoords.x - radarDetectionGraphics.width/2.0,playerScreenCoords.y - radarDetectionGraphics.height/2.0);
-  //draw projectiles
-  //draw enemies and projectiles trajectories
-  //draw exit button
-  //draw fire button
   //process coordinate selection
-
-  //DEBUG
-  PVector a = mapToScreenCoords(new PVector(2000,0));
-  fill(255);
-  circle(a.x,a.y,10);
+  if(targetCoords.x != -1){
+    PVector v = mapToScreenCoords(targetCoords);
+    image(crossair,v.x-crossair.width/2,v.y-crossair.height/2);
+  }
 }
 
 void checkMapClicks(){
   if (mouseX > 10 && mouseX < mapLenght+10 && mouseY > 10 && mouseX < mapLenght+10){
     targetCoords = screenToMapCoords(new PVector(mouseX,mouseY));
+    println("Target in coords " + str(targetCoords.x) + "," + str(targetCoords.y));//DEBUG
   }
 }
 
 void drawCommandScreen(){
-
+  background(0);
 }
 
 
