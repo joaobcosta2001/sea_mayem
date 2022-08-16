@@ -214,11 +214,24 @@ void loadUIElements(){
   textbox_building_boat_name = new UITextBox(width*6.0/16,height*0.5/9,width*4.0/16,height*0.75/9,"Nau Sao Gabriel");
   button_building_steal_intel = new UIButton(width*11.5/16,height*6.0/9,width*3.5/16,height*0.75/9,"Espiar");
   button_building_ready = new UIButton(width*11.5/16,height*7.25/9,width*3.5/16,height*0.75/9,"Pronto");
+  button_map_screen_fire_ft = new UIButton(width*2/3.0 + width*1/3.0/12,height/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
+  button_map_screen_fire_mt = new UIButton(width*2/3.0 + width*1/3.0/12,height*2.5/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
+  button_map_screen_fire_bt = new UIButton(width*2/3.0 + width*1/3.0/12,height*4/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
+  button_map_screen_back = new UIButton(width*2/3.0 + width/6.0,height*7.75/9.0,width/3.0/3,height*.75/9.0,"Voltar");
 }
 
 //IMAGES
-
+PGraphics ropeBar;
 void loadImages(){
+  ropeBar = createGraphics(10,height);
+  ropeBar.beginDraw();
+  ropeBar.stroke(255);
+  for(int i = -1; i < height/10; i++){
+    ropeBar.line(0,i*10,10,i*10+10);
+  }
+  ropeBar.line(0,0,0,ropeBar.height);
+  ropeBar.line(ropeBar.width-1,0,ropeBar.width-1,ropeBar.height);
+  ropeBar.endDraw();
   radarGraphics = generateRadarImage();
 }
 PFont font_karma_future_100;
@@ -429,6 +442,9 @@ void mousePressed(){
   if (currentScreen == "building_screen"){
     checkBuildingMenuSelections();
   }
+  if (currentScreen == "map_screen"){
+    checkMapClicks();
+  }
   processInputLibMousePress();
   processUILibMousePressed();
 }
@@ -615,11 +631,30 @@ void renderRadioMessageBalloons(){
   }
 }
 
-
+UIButton button_map_screen_fire_ft,button_map_screen_fire_mt,button_map_screen_fire_bt,button_map_screen_back;
+PVector targetCoords = new PVector(-1,-1);
 float lastSavedAngle = -1;
 //draws the map screen
 void drawMapScreen(){
   background(0);
+  //enable buttons if necessary
+  if (button_map_screen_back.visible == false){
+    hideAllUIElements();
+    button_map_screen_fire_ft.visible = true;
+    button_map_screen_fire_mt.visible = true;
+    button_map_screen_fire_bt.visible = true;
+    button_map_screen_back.visible = true;
+  }
+  //draw text
+  textAlign(LEFT);
+  textFont(font_karma_future_100);
+  textSize(height*.4/9.0);
+  fill(255);
+  text("Torre frontal",width*2.0/3+width/(3.0*12),height*.75/9.0);
+  text("Torre intermedia",width*2.0/3+width/3.0/12,height*2.25/9.0);
+  text("Torre traseira",width*2.0/3+width/3.0/12,height*3.75/9.0);
+  image(ropeBar,width*2/3.0,0);
+
   
   //draw map
   noFill();
@@ -679,7 +714,6 @@ void drawMapScreen(){
       if(currentAngle < lastAngle){ //last angle is almost 2 Pi and current angle is just above 0
         if(a < currentAngle || a > lastAngle){
           PVector delta = mapToScreenCoords(new PVector(p.boat.position.x-thisPlayer.boat.position.x,p.boat.position.y-thisPlayer.boat.position.y));
-          println("Player at " + str(p.boat.position.x) + "," + str(p.boat.position.y) + "   delta: " + str(p.boat.position.x-thisPlayer.boat.position.x) + "," + str(p.boat.position.y-thisPlayer.boat.position.y));
           radarDetectionGraphics.circle(delta.x+radarDetectionGraphics.width/2,delta.y+radarDetectionGraphics.height/2,5);
         }
       }else{
@@ -702,6 +736,12 @@ void drawMapScreen(){
   PVector a = mapToScreenCoords(new PVector(2000,0));
   fill(255);
   circle(a.x,a.y,10);
+}
+
+void checkMapClicks(){
+  if (mouseX > 10 && mouseX < mapLenght+10 && mouseY > 10 && mouseX < mapLenght+10){
+    targetCoords = screenToMapCoords(new PVector(mouseX,mouseY));
+  }
 }
 
 void drawCommandScreen(){
