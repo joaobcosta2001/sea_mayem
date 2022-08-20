@@ -159,7 +159,7 @@ void handleConnectivity(){
       if(m.length() >= 16){
         if (m.substring(0,16).equals("teams_unbalanced")){
           println("Teams are unbalanced!");
-          new UIMessage("As equipas estão desequilibradas!");
+          new UIMessage("Teams are unbalanced!");
         }
       }
       if(m.length() >= 15){
@@ -178,7 +178,7 @@ void handleConnectivity(){
       if(m.length() >= 17){
         if (m.substring(0,17).equals("not_enough_points")){
           println("Received not enough points");
-          new UIMessage("Já não tem pontos restantes!");
+          new UIMessage("You don't have enough remaining points!");
           if (selectedBuildingMenuPart == "Torre de Defesa Frontal"){
             scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
           }else if(selectedBuildingMenuPart == "Torre de Defesa Traseira"){
@@ -213,39 +213,39 @@ void handleConnectivity(){
           if(m.substring(13,m.length()).equals("strong_attack")){
             float r = random(1);
             if (r < 0.5){
-              new RadioMessageBalloon("O inimigo esta a prepara armas de grande calibre, cuidado!",width, height-100, 4000);
+              new RadioMessageBalloon("The enemy is installing large caliber guns, watch out!",width, height-100, 4000);
             }else{
-              new RadioMessageBalloon("Vejo artilharia pesada a ser montada nos navios adversarios!", width, height-100,4000);
+              new RadioMessageBalloon("I see heavy artillery being set up in the enemy's ships!", width, height-100,4000);
             }
           }else if(m.substring(13,m.length()).equals("strong_defense")){
             float r = random(1);
             if (r < 0.5){
-              new RadioMessageBalloon("O inimgo gastou bastante dinheiro em tecnologia defensiva de ponta!",width, height-100, 4000);
+              new RadioMessageBalloon("The enemy spent a fortune in advanced defense technology!",width, height-100, 4000);
             }else{
-              new RadioMessageBalloon("Vejo potentes torres de defesa a serem instaladas nos navios inimigos!", width, height-100,4000);
+              new RadioMessageBalloon("I see powerfull defense turrets beign installed in the enemy's vessels!", width, height-100,4000);
             }
           }else if(m.substring(13,m.length()).equals("strong_navigation")){
             float r = random(1);
             if (r < 0.5){
-              new RadioMessageBalloon("Nunca vi antenas tao sofisticadas como nos navios adversarios!",width, height-100, 4000);
+              new RadioMessageBalloon("I had never seen such advanced antennas as in the enemy's battleships!",width, height-100, 4000);
             }else{
-              new RadioMessageBalloon("Os radares instaldos nas torres de alguns navios inimigos sao preocupantes!", width, height-100,4000);
+              new RadioMessageBalloon("The radars installed in some of the enemy's towers are worrying!", width, height-100,4000);
             }
           }else if(m.substring(13,m.length()).equals("strong_engine")){
             float r = random(1);
             if (r < 0.5){
-              new RadioMessageBalloon("O barulho dos motores inimigos e ensurdecedor, devem ser de alta potencia!",width, height-100, 4000);
+              new RadioMessageBalloon("The noise of the enemy's engines is deafening, they must be really powerfull!",width, height-100, 4000);
             }else{
-              new RadioMessageBalloon("Vejo motores enorme a serem instalados na retaguarda de alguns navios, cuidado!", width, height-100,4000);
+              new RadioMessageBalloon("I see huge negines being installed in the rear of some ships, watch out!", width, height-100,4000);
             }
           }else if(m.substring(13,m.length()).equals("no_intel")){
             float r = random(1);
             if (r < 0.33){
-              new RadioMessageBalloon("O inimigo esta a esconder os barcos! Nao consigo avistar informacao relevante...",width, height-100, 4000);
+              new RadioMessageBalloon("The enemy is hiding its ships, i can't identify any relevant information...",width, height-100, 4000);
             }else if(r < 0.66){
-              new RadioMessageBalloon("Os meus binicolos nao funcionam! Que raio de instrumentos que a marinha nos da...", width, height-100,4000);
+              new RadioMessageBalloon("My binoculars are broken! The instruments the navy gives us are ever worse...", width, height-100,4000);
             }else{
-              new RadioMessageBalloon("Os meus instrumentos de espionagem apanharam agua! Nao consigo ver nada!", width, height-100,4000);
+              new RadioMessageBalloon("My instruments are tottaly wet! I can't see a thing!", width, height-100,4000);
             }
           }
         }

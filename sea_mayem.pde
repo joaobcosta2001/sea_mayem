@@ -50,16 +50,16 @@ void draw(){
       textAlign(CENTER);
       fill(0,255,255);
       textSize(button_main_screen_connect.fontSize);
-      text("Conectando...", width/2,height*(1.0/2+4.0/15+1.0/15*5.0/6));
+      text("Connecting...", width/2,height*(1.0/2+4.0/15+1.0/15*5.0/6));
       currentScreen = "connecting";
     }
     if(button_main_screen_connect.clicked){
       if(textbox_main_screen_ip.text.length() == 0){
-        new UIMessage("Por favor insira um IP!");
+        new UIMessage("Please specify an IP address!");
       }else if(textbox_main_screen_port.text.length() == 0){
-        new UIMessage("Por favor insira uma porta!");
+        new UIMessage("Please specify a port!");
       }else if(textbox_main_screen_name.text.length() == 0){
-        new UIMessage("Por favor insira um nome!");
+        new UIMessage("Please specify a name!");
       }else{
         currentScreen = "main_connecting";
         button_main_screen_connect.visible = false;
@@ -68,7 +68,7 @@ void draw(){
     }
   }else if(currentScreen == "connecting"){
     if(!connectToServer(textbox_main_screen_ip.text,textbox_main_screen_port.text)){
-      new UIMessage("Falha na conexão!");
+      new UIMessage("Connection failed!");
       currentScreen = "main";
     }else{
       sendServerRequest("login");
@@ -119,19 +119,19 @@ void draw(){
   }else if(currentScreen == "building_screen"){
     drawBuildingMenu();
     if (scrolllist_building_part_select.clicked){
-      if (selectedBuildingMenuPart == "Torre de Defesa Frontal"){
+      if (selectedBuildingMenuPart == "Front Defense Turret"){
         sendServerRequest("change_part:fat:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Torre de Defesa Traseira"){
+      }else if (selectedBuildingMenuPart == "Rear Defense Turret"){
         sendServerRequest("change_part:bat:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Torre Frontal"){
+      }else if (selectedBuildingMenuPart == "Front Turret"){
         sendServerRequest("change_part:ft:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Torre Intermedia"){
+      }else if (selectedBuildingMenuPart == "Middle Turret"){
         sendServerRequest("change_part:mt:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Torre Traseira"){
+      }else if (selectedBuildingMenuPart == "Rear Turret"){
         sendServerRequest("change_part:bt:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Sistema de Navegacao"){
+      }else if (selectedBuildingMenuPart == "Navigation System"){
         sendServerRequest("change_part:nav:" + str(scrolllist_building_part_select.selectedIndex));
-      }else if (selectedBuildingMenuPart == "Motores"){
+      }else if (selectedBuildingMenuPart == "Engines"){
         sendServerRequest("change_part:eng:" + str(scrolllist_building_part_select.selectedIndex));
       }
     }
@@ -147,7 +147,7 @@ void draw(){
     textFont(font_karma_future_100);
     fill(255);
     textAlign(CENTER);
-    text("Carregando jogo...",width/2, height/2+50-textDescent());
+    text("Loading game...",width/2, height/2+50-textDescent());
   }else if (currentScreen == "map_screen"){
     drawMapScreen();
     if(button_map_screen_fire_ft.clicked && targetCoords.x != -1){
@@ -186,12 +186,12 @@ void preprocess(){
 }
 
 void loadUIElements(){
-  textbox_main_screen_ip = new UITextBox(width*5/12,height*(1.0/2+1.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Endereco IP");
-  textbox_main_screen_port = new UITextBox(width*5/12,height*(1.0/2+2.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Porta");
-  textbox_main_screen_name = new UITextBox(width*5/12,height*(1.0/2+3.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Nome do Jogador");
-  button_main_screen_connect = new UIButton(width/2-width/12,height*(1.0/2+4.0/15+1.0/15*1.0/6),width/6,height*(1.0/15*4.0/6),"Conectar");
-  button_team_select_swap = new UIButton(width*5.5/16, height * 7.5/9, width*2/16.0,height*0.75/9,"Trocar");
-  button_team_select_ready = new UIButton(width*8.5/16,height * 7.5/9, width*2/16.0,height*0.75/9,"Pronto");
+  textbox_main_screen_ip = new UITextBox(width*5/12,height*(1.0/2+1.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"IP address");
+  textbox_main_screen_port = new UITextBox(width*5/12,height*(1.0/2+2.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Port");
+  textbox_main_screen_name = new UITextBox(width*5/12,height*(1.0/2+3.0/15+1.0/15*1.0/6),width/6, height*(1.0/15*4.0/6),"Player's name");
+  button_main_screen_connect = new UIButton(width/2-width/12,height*(1.0/2+4.0/15+1.0/15*1.0/6),width/6,height*(1.0/15*4.0/6),"Connect");
+  button_team_select_swap = new UIButton(width*5.5/16, height * 7.5/9, width*2/16.0,height*0.75/9,"Swap");
+  button_team_select_ready = new UIButton(width*8.5/16,height * 7.5/9, width*2/16.0,height*0.75/9,"Ready");
   scrolllist_team_select_team_1 = new UIScrollList(width*2/16.0,height*2/9.0,width*5/16.0,height*5/9.0);
   scrolllist_team_select_team_2 = new UIScrollList(width*9/16.0,height*2/9.0,width*5/16.0,height*5/9.0);
   progressbar_bulding_total_normal_points = new UIProgressBar(width * 1.5/16, height * 1.25/9,width*3.0/16,height*0.25/9);
@@ -204,13 +204,13 @@ void loadUIElements(){
   progressbar_building_engine_points = new UIProgressBar(width * 1.5/16, height * 4.5 / 9, width * 2.25/16, height * 0.25/9);
   scrolllist_building_team_list = new UIScrollList(width/16.0,height*5.5/9,width*3.5/16,height*2.5/9);
   scrolllist_building_part_select = new UIScrollList(width*11.5/16.0,height*1/9.0,width*3.5/16,height*3.0/9);
-  textbox_building_boat_name = new UITextBox(width*6.0/16,height*0.5/9,width*4.0/16,height*0.75/9,"Nau Sao Gabriel");
-  button_building_steal_intel = new UIButton(width*11.5/16,height*6.0/9,width*3.5/16,height*0.75/9,"Espiar");
-  button_building_ready = new UIButton(width*11.5/16,height*7.25/9,width*3.5/16,height*0.75/9,"Pronto");
-  button_map_screen_fire_ft = new UIButton(width*2/3.0 + width*1/3.0/12,height/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
-  button_map_screen_fire_mt = new UIButton(width*2/3.0 + width*1/3.0/12,height*2.5/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
-  button_map_screen_fire_bt = new UIButton(width*2/3.0 + width*1/3.0/12,height*4/9.0,width/3.0/3,height*0.75/9.0,"Fogo!");
-  button_map_screen_back = new UIButton(width*2/3.0 + width/6.0,height*7.75/9.0,width/3.0/3,height*.75/9.0,"Voltar");
+  textbox_building_boat_name = new UITextBox(width*6.0/16,height*0.5/9,width*4.0/16,height*0.75/9,"USS Mayem");
+  button_building_steal_intel = new UIButton(width*11.5/16,height*6.0/9,width*3.5/16,height*0.75/9,"Spy");
+  button_building_ready = new UIButton(width*11.5/16,height*7.25/9,width*3.5/16,height*0.75/9,"Ready");
+  button_map_screen_fire_ft = new UIButton(width*2/3.0 + width*1/3.0/12,height/9.0,width/3.0/3,height*0.75/9.0,"Fire!");
+  button_map_screen_fire_mt = new UIButton(width*2/3.0 + width*1/3.0/12,height*2.5/9.0,width/3.0/3,height*0.75/9.0,"Fire!");
+  button_map_screen_fire_bt = new UIButton(width*2/3.0 + width*1/3.0/12,height*4/9.0,width/3.0/3,height*0.75/9.0,"Fire!");
+  button_map_screen_back = new UIButton(width*2/3.0 + width/6.0,height*7.75/9.0,width/3.0/3,height*.75/9.0,"Back");
 }
 
 //IMAGES
@@ -253,7 +253,7 @@ void drawLoadingScreen(){
   textFont(font_karma_future_100);
   textSize(48);
   textAlign(CENTER);
-  text("Carregando...",width/2,height/2 + (textAscent() + textDescent())/2 - textDescent());
+  text("Loading...",width/2,height/2 + (textAscent() + textDescent())/2 - textDescent());
 }
 
 UIButton button_main_screen_connect;
@@ -268,7 +268,7 @@ void drawMainScreen(){
   textFont(font_karma_suture_100);
   textSize(40);
   fill(255);
-  text("Conectar a um servidor:", width/2, height/2 + 20-textDescent());
+  text("Connect to a server:", width/2, height/2 + 20-textDescent());
   textSize(30);
 }
 
@@ -280,8 +280,8 @@ void drawTeamSelectMenu(){
   textAlign(CENTER);
   textSize(height*0.75/9);
   fill(0,255,255);
-  text("Equipa 1",width*4.5/16,height*1.75/9-textDescent());
-  text("Equipa 2",width*11.5/16,height*1.75/9-textDescent());
+  text("Team 1",width*4.5/16,height*1.75/9-textDescent());
+  text("Team 2",width*11.5/16,height*1.75/9-textDescent());
   textFont(font_karma_suture_100);
   textAlign(LEFT);
   UIButton b = button_team_select_ready;
@@ -318,53 +318,53 @@ void drawBuildingMenu(){
 String selectedBuildingMenuPart = "";
 void checkBuildingMenuSelections(){
   if (dist(mouseX,mouseY,width*8/16.0,height*2.6785/9) < height * 0.171875/9){
-    selectedBuildingMenuPart = "Torre de Defesa Frontal";
+    selectedBuildingMenuPart = "Front Defense Turret";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
-    scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
-    scrolllist_building_part_select.add("Torre anti-missil (+15p)");
+    scrolllist_building_part_select.add("Anti-torpedo Turret (+5p)");
+    scrolllist_building_part_select.add("Anti-cannon Turret (+10p)");
+    scrolllist_building_part_select.add("Anti-missile Turret (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.fat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*5.73165/9) < height * 0.171875/9){
-    selectedBuildingMenuPart = "Torre de Defesa Traseira";
+    selectedBuildingMenuPart = "Rear Defense Turret";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torre anti-torpedo (+5p)");
-    scrolllist_building_part_select.add("Torre anti-canhao (+10p)");
-    scrolllist_building_part_select.add("Torre anti-missil (+15p)");
+    scrolllist_building_part_select.add("Anti-torpedo Turret (+5p)");
+    scrolllist_building_part_select.add("Anti-cannon Turret (+10p)");
+    scrolllist_building_part_select.add("Anti-missile Turret (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bat;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*3.2721875/9) < height * 0.2578125/9){
-    selectedBuildingMenuPart = "Torre Frontal";
+    selectedBuildingMenuPart = "Front Turret";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
-    scrolllist_building_part_select.add("Canhao (+10p)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedo Turret (+5p)");
+    scrolllist_building_part_select.add("Cannon (+10p)");
+    scrolllist_building_part_select.add("Missile Launcher (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.ft;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*4.1203125/9) < height * 0.2578125/9){
-    selectedBuildingMenuPart = "Torre Intermedia";
+    selectedBuildingMenuPart = "Middle Turret";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
-    scrolllist_building_part_select.add("Canhao (+10p)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedo Turret (+5p)");
+    scrolllist_building_part_select.add("Cannon (+10p)");
+    scrolllist_building_part_select.add("Missile Launcher (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.mt;
   }else if (dist(mouseX,mouseY,width*8/16.0,height*6.4950625/9) < height * 0.2578125/9){
-    selectedBuildingMenuPart = "Torre Traseira";
+    selectedBuildingMenuPart = "Back Turret";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Torpedeiro (+5p)");
-    scrolllist_building_part_select.add("Canhao (+10p)");
-    scrolllist_building_part_select.add("Lanca-misseis (+15p)");
+    scrolllist_building_part_select.add("Torpedo Turret (+5p)");
+    scrolllist_building_part_select.add("Cannon (+10p)");
+    scrolllist_building_part_select.add("Missile Launcher (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.bt;
   }else if (mouseX>width/2.0 - (height*5.5/9*800)*25 && mouseX<width/2.0 + (height*5.5/9*800)*25 && mouseY > height*2/9.0 + height*5.5/(9*800)*450 && mouseY < height*2/9.0 + height*5.5/(9*800)*500){
-    selectedBuildingMenuPart = "Sistema de Navegacao";
+    selectedBuildingMenuPart = "Navigation System";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Parabolica (+5p)");
-    scrolllist_building_part_select.add("Antenas (+10p)");
+    scrolllist_building_part_select.add("Parabolic (+5p)");
+    scrolllist_building_part_select.add("Antennas (+10p)");
     scrolllist_building_part_select.add("Radar (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.nav;
   }else if (mouseX>width/2.0 - (height*5.5/9*800)*50 && mouseX<width/2.0 + (height*5.5/9*800)*50 && mouseY > height*2/9.0 + height*5.5/(9*800)*775 && mouseY < height*2/9.0 + height*5.5/(9*800)*800){
-    selectedBuildingMenuPart = "Motores";
+    selectedBuildingMenuPart = "Engines";
     scrolllist_building_part_select.removeAll();
-    scrolllist_building_part_select.add("Uma turbina (+5p)");
-    scrolllist_building_part_select.add("Duas turbinas (+10p)");
-    scrolllist_building_part_select.add("Tres turbinas (+15p)");
+    scrolllist_building_part_select.add("One turbine (+5p)");
+    scrolllist_building_part_select.add("Two turbines (+10p)");
+    scrolllist_building_part_select.add("Three turbines (+15p)");
     scrolllist_building_part_select.selectedIndex = thisPlayer.boat.eng;
   }else if(mouseX > width*5/16.0 && mouseX < width*11/16.0 && mouseY > height*1.5/9.0 && mouseY < height*8/9.0){
     selectedBuildingMenuPart = "";
@@ -659,9 +659,9 @@ void drawMapScreen(){
   textFont(font_karma_future_100);
   textSize(height*.4/9.0);
   fill(255);
-  text("Torre frontal",width*2.0/3+width/(3.0*12),height*.75/9.0);
-  text("Torre intermedia",width*2.0/3+width/3.0/12,height*2.25/9.0);
-  text("Torre traseira",width*2.0/3+width/3.0/12,height*3.75/9.0);
+  text("Front Turret",width*2.0/3+width/(3.0*12),height*.75/9.0);
+  text("Middle Turret",width*2.0/3+width/3.0/12,height*2.25/9.0);
+  text("Rear Turret",width*2.0/3+width/3.0/12,height*3.75/9.0);
   image(ropeBar,width*2/3.0,0);
 
   
