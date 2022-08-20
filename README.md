@@ -10,4 +10,4 @@ Sea Mayem is a multiplayer arcade battleship war game, in which each player is a
 
 Sea mayem starts in the main screen, where the player is able to select the server's ip and port and set a name. If a player tries to connect to a server, the client application will attempt to create a socket connection. If successfull, the client will send a login message with information like the player name and the server will reply with a message containing information like the size of the game map or the maximum number of points usable for attack parts on boats.
 
-![Main menu screenshot](https://imgur.com/oYU0JKB "Main Menu")
+![Main menu screenshot](https://imgur.com/oYU0JKB)
