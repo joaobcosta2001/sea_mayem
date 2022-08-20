@@ -1,10 +1,10 @@
 # Sea Mayem
 
-Sea Mayem is an arcade multiplayer game developded as an hobby project with the goal of being a learning environment for myself. It uses concepts like socket and server programming, UI desing, game design etc. The client application uses Java with the Processing API and the sever application is written in Python.
+Sea Mayem is an arcade multiplayer game developed as an hobby project with the goal of being a learning environment for myself. It uses concepts like socket and server programming, UI desing, game design etc. The client application uses Java with the Processing API and the sever application is written in Python.
 
 ## The Game
 
-Sea Mayem is a multiplayer arcade battleship war game, in which each player is able to build his/her own warship and battle against other players in a naval map. The game is all 2D and most mechanics are based on creating a counter strategy relative to your opponents, team work and luck.
+Sea Mayem is a multiplayer arcade battleship war game, in which each player is able to build their own warship and battle against other players in a naval map. The game is all 2D and most mechanics are based on creating a counter strategy relative to your opponents, team work and luck.
 
 ## Game description in detail
 
@@ -16,17 +16,17 @@ Then the server sends the current teams information and presents it on a new men
 
 ![Teams menu screenshot](https://i.imgur.com/HgqP4ms.png)
 
-Once every player declared themselves ready, the server would command all clients to go to the building menu, where each player is able to build his/her own ship, by selecting its components. Each component as a cost (either 5, 10 or 15 points) and there is a maximum number of points a player can use to build his/her boat, so the player can specialize the ship in the way he/she prefers. This also means proper team communication could allow each player to specialize in a different aspect and have a team with variety of functions. The player can also see his/her team, the current points allocated to each function in his/her ship relative to the maximum possible and set a name for the ship.
+Once every player declared themselves ready, the server would command all clients to go to the building menu, where each player is able to build their own ship, by selecting its components. Each component as a cost (either 5, 10 or 15 points) and there is a maximum number of points a player can use to build their boat, so the player can specialize the ship in the way they prefer. This also means proper team communication could allow each player to specialize in a different aspect and have a team with variety of functions. The player can also see their team, the current points allocated to each function in their ship relative to the maximum possible and set a name for the ship.
 
 ![Teams menu screenshot](https://i.imgur.com/wC1y2Qy.png)
 
-The player can also use a part of the total points, called the special points, to spy on the enemy team, meaning he/she can have some information of the enemy team's current setup. The enemy team can however change the setup after an espionage attempt, therefore this mechanic has to be used with caution. 
+The player can also use a part of the total points, called the special points, to spy on the enemy team, meaning they can have some information of the enemy team's current setup. The enemy team can however change the setup after an espionage attempt, therefore this mechanic has to be used with caution. 
 
 ![Teams menu screenshot](https://i.imgur.com/48zGMEN.png)
 
 Once all players are ready, the server commands all players to go to a loading screen and sends the map, generated when the server was created, to all players. Then it sets all boats positions in the map, generates boats for bots if necessary and when the game setup is all done it checks wether all player have confirmed the correct reception of the map. If so the server tells all clients to start the game. The client side in turn, from this point on, will repeatedly send request for game information and the server will continuously respond with the information regarding all gama data, such as boat positions, boat bearings, projectile positions, etc.
 
-At this stage the player is first presented with the Map Screen, in wich the player is able to see the whole map, his/her position and also the position of other teammates. There is also a radar, placed in the players position, that is able to detect enemies and enemy's projectiles. This detection is done by sweeping the radar, and if the radar hits an enemy or a projectile a dot, of red or orange color respectively, is drawn on the map. Furthermore, the player can select a coordinate and press the fire button that fires one of his/her attack turrets and that sends a projectile of the apropriate type to those coordinatews. 
+At this stage the player is first presented with the Map Screen, in wich the player is able to see the whole map, their position and also the position of other teammates. There is also a radar, placed in the players position, that is able to detect enemies and enemy's projectiles. This detection is done by sweeping the radar, and if the radar hits an enemy or a projectile a dot, of red or orange color respectively, is drawn on the map. Furthermore, the player can select a coordinate and press the fire button that fires one of their attack turrets and that sends a projectile of the apropriate type to those coordinatews. 
 
 ![Teams menu screenshot](https://i.imgur.com/L5cnjvL.png)
 
