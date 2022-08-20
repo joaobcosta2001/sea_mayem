@@ -12,6 +12,7 @@ long animationStartTime = 0;
 float mapLenght;
 
 
+ArrayList<PVector> projectileList = new ArrayList<PVector>();
 ArrayList<Player> playerList = new ArrayList<Player>();
 
 void setup(){
@@ -149,14 +150,17 @@ void draw(){
     text("Carregando jogo...",width/2, height/2+50-textDescent());
   }else if (currentScreen == "map_screen"){
     drawMapScreen();
-    if(button_map_screen_fire_ft.clicked){
+    if(button_map_screen_fire_ft.clicked && targetCoords.x != -1){
       sendServerRequest("fire:ft," + targetCoords.x + "," + targetCoords.y);
+      button_map_screen_fire_ft.enabled = false;
     }
-    if(button_map_screen_fire_mt.clicked){
+    if(button_map_screen_fire_mt.clicked && targetCoords.x != -1){
       sendServerRequest("fire:mt," + targetCoords.x + "," + targetCoords.y);
+      button_map_screen_fire_mt.enabled = false;
     }
-    if(button_map_screen_fire_bt.clicked){
+    if(button_map_screen_fire_bt.clicked && targetCoords.x != -1){
       sendServerRequest("fire:bt," + targetCoords.x + "," + targetCoords.y);
+      button_map_screen_fire_bt.enabled = false;
     }
     if(button_map_screen_back.clicked){
       currentScreen = "command_screen";
@@ -680,11 +684,15 @@ void drawMapScreen(){
     Player p = playerList.get(i);
     noStroke();
     if (p.team == thisPlayer.team){
-      fill(0,255,0);
+      if (p == thisPlayer){
+        fill(255,255,0);
+      }else{
+        fill(0,255,0);
+      }
       circle(p.boat.position.x*mapLenght/(mapSize*1000)+10,p.boat.position.y*mapLenght/(mapSize*1000)+10,5);
     }
   }
-  float currentAngle = getAngleBelow2PI((millis()-animationStartTime)/500.0);
+  float currentAngle = getAngleBelow2PI((millis()-animationStartTime)/200.0);
   float lastAngle = lastSavedAngle;
   lastSavedAngle = currentAngle;
   //draw radar
@@ -705,7 +713,6 @@ void drawMapScreen(){
   radarDetectionGraphics.updatePixels();
   radarDetectionGraphics.fill(255,0,0);
   radarDetectionGraphics.noStroke();
-  //Go through each player
   for (int i = 0; i < playerList.size(); i++){
     Player p = playerList.get(i);
     //If it is an enemy and within range
@@ -729,6 +736,40 @@ void drawMapScreen(){
       }
     }
   }
+  //draw projectiles
+  radarDetectionGraphics.fill(255,128,0);
+  for (int i = 0; i < projectileList.size(); i++){
+    PVector p = projectileList.get(i);
+    //If it is an enemy and within range
+    if (p.z != thisPlayer.team && p.z != 0 && dist(p.x,p.y,thisPlayer.boat.position.x,thisPlayer.boat.position.y) < 200*(1+thisPlayer.boat.nav)){
+      //get angle of the enemy
+      float a = PVector.angleBetween(new PVector(p.x-thisPlayer.boat.position.x,p.y-thisPlayer.boat.position.y),new PVector(1,0));
+      if (p.y-thisPlayer.boat.position.y < 0){
+        a = 2 * PI-a;
+      }
+      //Check if angle is within current radar sweep
+      if(currentAngle < lastAngle){ //last angle is almost 2 Pi and current angle is just above 0
+        if(a < currentAngle || a > lastAngle){
+          PVector delta = mapToScreenCoords(new PVector(p.x-thisPlayer.boat.position.x,p.y-thisPlayer.boat.position.y));
+          radarDetectionGraphics.circle(delta.x+radarDetectionGraphics.width/2,delta.y+radarDetectionGraphics.height/2,5);
+        }
+      }else{
+        if(a < currentAngle && a > lastAngle){
+          PVector delta = new PVector((p.x-thisPlayer.boat.position.x)*mapLenght/(mapSize*1000),(p.y-thisPlayer.boat.position.y)*mapLenght/(mapSize*1000));
+          radarDetectionGraphics.circle(radarDetectionGraphics.width/2+delta.x,radarDetectionGraphics.height/2+delta.y,5);
+        }
+      }
+    }else if (p.z == 0){
+      fill(255,255,0);
+      PVector v = mapToScreenCoords(projectileList.get(i));
+      circle(v.x,v.y,5);
+    }else{
+      fill(255,200,0);
+      PVector v = mapToScreenCoords(projectileList.get(i));
+      circle(v.x,v.y,5);
+    }
+  }
+
   radarDetectionGraphics.endDraw();
   image(radarDetectionGraphics,playerScreenCoords.x - radarDetectionGraphics.width/2.0,playerScreenCoords.y - radarDetectionGraphics.height/2.0);
   //process coordinate selection

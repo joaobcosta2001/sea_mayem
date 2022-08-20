@@ -78,6 +78,14 @@ void handleConnectivity(){
       longMessageCount++;
       return;
     }
+    int nullIndex = m.length()-1;
+    while(m.charAt(nullIndex) == '\0'){
+      nullIndex--;
+    }
+    boolean incompleteMessagePresent = false;
+    if(m.charAt(nullIndex) != '|'){
+      incompleteMessagePresent = true;
+    }
     //divides message in parts with '|' as the delimiter
     StringTokenizer st = new StringTokenizer(m,"|");
     while(st.hasMoreTokens()){
@@ -97,9 +105,10 @@ void handleConnectivity(){
         longMessage = "";
         println("Received long message with " + str(longMessageCount) + " fragments");
         longMessageCount = 0;
-      }else{
-        //println("Received message: |" + m + "|");
-        ;
+      }
+      if (!st.hasMoreTokens() && incompleteMessagePresent){
+        longMessage = m;
+        break;
       }
       if(m.length() >= 11){
         if (m.substring(0,11).equals("login_info:")){
@@ -326,6 +335,7 @@ void handleConnectivity(){
       if (m.length() >= 10){
         if (m.substring(0,10).equals("game_info:")){
           updateGameInfo(m);
+          sendServerRequest("send_game_info");
         }
       }
     }
@@ -411,33 +421,58 @@ void updateBoats(String m){ //updates boats' displays
 
 
 //update game informations, m is the string with the information sent by server
-//Message example: game_info:boats:Bob,100,100,Mary,100,150;
+//Message example: game_info:boats:Bob,100,100,2.4,Mary,100,150,1.76;projectiles:100,20,110,32;
 void updateGameInfo(String m){
-  int i1 = 16, i2 = 16,stage = 0;
-  Player p = null;
+  int i1 = 16, i2 = 16;
+  int semicolonIndex = m.indexOf(';');
   while (true){
-    if (m.charAt(i1) == ',' || m.charAt(i1) == ';'){
-      if (stage == 0){
-        p = getPlayerByName(m.substring(i2, i1));
-        stage++;
-      }else if(stage == 1){
-        p.boat.position.x = float(m.substring(i2, i1));
-        stage++;
-      }else{
-        p.boat.position.y = float(m.substring(i2, i1));
-        stage = 0;
-        p = null;
-      }
-      i2 = i1+1;
+    i1 = m.indexOf(',',i2);
+    Player p = getPlayerByName(m.substring(i2,i1));
+    if (p == null){
+      println("Boat of player " + m.substring(i2,i1) +  " not found!");
     }
-    if (m.charAt(i1) == ';'){
+    i2 = i1+1;
+    i1 = m.indexOf(',',i2);
+    p.boat.position.x = float(m.substring(i2,i1));
+    i2 = i1 + 1;
+    i1 = m.indexOf(',',i2);
+    p.boat.position.y = float(m.substring(i2,i1));
+    i2 = i1 + 1;
+    i1 = m.indexOf(',',i2);
+    if (i1 > semicolonIndex || i1 <0){
+      p.boat.rotation = float(m.substring(i2,semicolonIndex));
       break;
+    }else{
+      p.boat.rotation = float(m.substring(i2,i1));
     }
-    i1++;
+    i2 = i1 +1;
   }
-  //DEBUG
-  println("Updated game info:");
-  for(int i = 0; i < playerList.size();i++){
-    println("Player " + playerList.get(i).name + ": " + str(playerList.get(i).boat.position.x) + "," + str(playerList.get(i).boat.position.y));
+  i1 = semicolonIndex + 1; i2 = semicolonIndex +13; semicolonIndex = m.indexOf(';',i1);
+  projectileList.clear();
+  if (m.charAt(i2) != ';'){
+    while (true){
+      i1 = m.indexOf(',',i2);
+      float x = float(m.substring(i2,i1));
+      i2 = i1 + 1;
+      i1 = m.indexOf(',',i2);
+      float y = float(m.substring(i2,i1));
+      i2 = i1 + 1;
+      i1 = m.indexOf(',',i2);
+      if (i1 <0){
+        if(m.substring(i2,m.length()-1).equals(thisPlayer.name)){
+          projectileList.add(new PVector(x,y,0));
+        }else{
+          projectileList.add(new PVector(x,y,getPlayerByName(m.substring(i2,m.length()-1)).team));
+        }
+        break;
+      }else{
+        if(m.substring(i2,i1).equals(thisPlayer.name)){
+          projectileList.add(new PVector(x,y,0));
+        }else{
+          projectileList.add(new PVector(x,y,getPlayerByName(m.substring(i2,i1)).team));
+        }
+        i2=i1+1;
+      }
+    }
   }
 }

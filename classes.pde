@@ -1,10 +1,10 @@
 class Boat{
   PVector position;
-  float angle;
+  float rotation;
   int ft,mt,bt,fat,bat,nav,eng;
   Boat(){
     this.position = new PVector(0,0); //position of the boat in the map
-    this.angle = 0;  //angle of the boat
+    this.rotation = 0;  //angle of the boat
     this.ft = -1;  //type of front turret
     this.mt = -1;  //type of middle turret
     this.bt = -1;  //type of back turret
@@ -158,6 +158,7 @@ class RadioMessageBalloon{
     popMatrix();
   }
 }
+
 
 void drawGrid(PVector offset, float scale){
   stroke(0,255,255);
